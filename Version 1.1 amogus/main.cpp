@@ -3,6 +3,36 @@
 #include "cmath"
 #include "rcamera.h"
 
+/*  TODO en priorité : Tirer avec une arme (affichage sprite de l'arme, curseur, munitions, rechargement, cadence de tir, dégats)
+                      Ennemis se dirigent aléatoirement et tirent vers le joueur (attaque à distance) 
+                      Mettre PV pour joueur/ennemis + écran de mort 
+                      dégâts provoqués par ennemis
+                      Réparer déplacement latéral caméra
+                      Changer texture du plafond
+                      changer map
+                      ATH : arme, PV, munitions, score, (minimap ?) + devient rouge lorsque des dégâts sont pris
+                      timer
+                      Faire spawn plusieurs ennemis (stockage dans un array ?)
+                      Sons ambiance : marche, tirs, ennemis.
+                      gestion du score
+                      compteur fps
+                      trouver sprite animé (3-4 frames) pour ennemi (mort + déplacement ?)
+
+    TODO optionnel : Shaders (ombre et néon) flash sur l'arme ?
+                     Changement d'armes
+                     spawn munition et (vie ?)(armure ?)
+                     Menu
+                     Round
+                     SafeZone, porte, escalier...
+                     Arme CàC
+                     */
+
+
+
+                     
+
+
+
 bool CheckVision(Vector3 pos1, Vector3 pos2, Texture2D dimensionsMap, Vector3 mapPosition, Color *mapCouleurs)
 {
     bool visionDirecte = true;
