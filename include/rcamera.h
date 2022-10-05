@@ -40,7 +40,7 @@
 *     3. This notice may not be removed or altered from any source distribution.
 *
 **********************************************************************************************/
-
+#define CAMERA_IMPLEMENTATION
 #ifndef RCAMERA_H
 #define RCAMERA_H
 
@@ -421,7 +421,7 @@ void UpdateCamera(Camera *camera)
 
             // Camera orientation calculation
             CAMERA.angle.x -= mousePositionDelta.x*CAMERA_MOUSE_MOVE_SENSITIVITY*GetFrameTime();
-            CAMERA.angle.y -= mousePositionDelta.y*CAMERA_MOUSE_MOVE_SENSITIVITY*GetFrameTime();
+            //CAMERA.angle.y -= mousePositionDelta.y*CAMERA_MOUSE_MOVE_SENSITIVITY*GetFrameTime();
 
             // Angle clamp
             if (CAMERA.angle.y > CAMERA_FIRST_PERSON_MIN_CLAMP*DEG2RAD) CAMERA.angle.y = CAMERA_FIRST_PERSON_MIN_CLAMP*DEG2RAD;
@@ -482,14 +482,6 @@ void UpdateCamera(Camera *camera)
             // Camera position update
             // NOTE: On CAMERA_FIRST_PERSON player Y-movement is limited to player 'eyes position'
             camera->position.y = CAMERA.playerEyesPosition;
-
-            // Camera swinging (y-movement), only when walking (some key pressed)
-            for (int i = 0; i < 6; i++) if (direction[i]) { swingCounter += GetFrameTime(); break; }
-            camera->position.y -= sinf(2*PI*CAMERA_FIRST_PERSON_STEP_FREQUENCY*swingCounter)*CAMERA_FIRST_PERSON_SWINGING_DELTA;
-
-            // Camera waiving (xz-movement), only when walking (some key pressed)
-            camera->up.x = sinf(2*PI*CAMERA_FIRST_PERSON_STEP_FREQUENCY*swingCounter)*CAMERA_FIRST_PERSON_TILTING_DELTA;
-            camera->up.z = -sinf(2*PI*CAMERA_FIRST_PERSON_STEP_FREQUENCY*swingCounter)*CAMERA_FIRST_PERSON_TILTING_DELTA;
 
         } break;
         case CAMERA_THIRD_PERSON:   // Camera moves as in a third-person game, following target at a distance, controls are configurable
