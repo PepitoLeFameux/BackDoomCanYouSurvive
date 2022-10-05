@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "iostream"
 #include "cmath"
+#include "rcamera.h"
 
 bool CheckVision(Vector3 pos1, Vector3 pos2, Texture2D dimensionsMap, Vector3 mapPosition, Color *mapCouleurs)
 {
