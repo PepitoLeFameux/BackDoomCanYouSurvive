@@ -25,7 +25,7 @@
                      Round
                      SafeZone, porte, escalier...
                      Arme CàC
-                     */
+*/
 
 
 
@@ -156,7 +156,6 @@ int main(int argc, char const *argv[])
 
             BeginMode3D(camera);
                 DrawModel(modeleMap, mapPosition, 1.0f, WHITE);
-                DrawSphere((Vector3){0.0f - 0.5f, 0.0f, -1.0f - 0.5f}, 0.3f, RED);
                 DrawBillboard(camera, amogus, posAmogus, 0.5f, WHITE);
             EndMode3D();
 
