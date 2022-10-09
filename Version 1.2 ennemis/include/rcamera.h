@@ -279,7 +279,7 @@ void SetCameraMode(Camera camera, int mode)
 //       Keys:  IsKeyDown()
 void UpdateCamera(Camera *camera)
 {
-    static float swingCounter = 0.0f;    // Used for 1st person swinging movement
+    //static float swingCounter = 0.0f;    // Used for 1st person swinging movement
 
     // TODO: Compute CAMERA.targetDistance and CAMERA.angle here (?)
 
