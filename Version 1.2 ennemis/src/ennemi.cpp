@@ -20,15 +20,15 @@ void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPositi
 
 void Ennemi::SetRandomType(void)
 {
-    const int nombreDeTypes = 1; // A CHANGER QUAND ON RAJOUTE DES ENNEMIS
-    float listeTailles[] = {1.0f}; //
-    int listePvs[] = {100};      //
-    int listeDegats[] = {5};
+    const int nombreDeTypes = 3; // A CHANGER QUAND ON RAJOUTE DES ENNEMIS
+    float listeTailles[] =  {1.0f,  0.9f,   1.6f}; //
+    int listePvs[] =        {100,   100,    200};      //
+    int listeDegats[] =     {5,     20,     30};
 
     typeEnnemi = GetRandomValue(0, nombreDeTypes-1);
     taille = listeTailles[typeEnnemi];
     defaultY = taille/4.0f;
-    distanceCollision = 0.3f;
+    distanceCollision = taille/6.0f;
     pvMax = listePvs[typeEnnemi];
     degats = listeDegats[0];
 
@@ -169,11 +169,8 @@ void Ennemi::Render()
 {
     if(dead){;}
     else{
-    DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/6.0f, taille/6.0f, 0.001f, 16, DARKGRAY);
+    DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/6.0f, taille/6.0f, 0.0001f, 16, DARKGRAY);
     DrawBillboard(*camera, texture, position, taille/2.0f, WHITE);
-    Rectangle recOmbre = (Rectangle){0.0f, 0.0f, 1.0f, 1.0f};
-    DrawBillboardPro(*camera, ombre, recOmbre, (Vector3){position.x, 0.1f, position.z}, (Vector3){1.0f, 0.0f, 0.0f},
-                     (Vector2){1.0f, 1.0f}, (Vector2){0.0f, 0.0f}, 0.0f, WHITE);
     }
 }
 
@@ -222,7 +219,7 @@ void Ennemi::Action()
     if(dead){;}
     else{
     Vector3 cameraPos = (*camera).position;
-    if(VisionDirecte(position, (*camera).position)) poursuite = true;
+    //if(VisionDirecte(position, (*camera).position)) poursuite = true;
     //std::cout << "d " << destination.x << " " << destination.z << std::endl;
 
     if(poursuite)

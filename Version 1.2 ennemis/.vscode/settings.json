@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "Makefile": "cpp",
         "*.tcc": "cpp",
         "cctype": "cpp",
         "clocale": "cpp",
@@ -26,7 +27,15 @@
         "string_view": "cpp",
         "system_error": "cpp",
         "type_traits": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp"
     },
-    "cmake.sourceDirectory": "${workspaceFolder}/include"
+    "cmake.sourceDirectory": "${workspaceFolder}/include",
+    "cmake.configureOnOpen": false
 }

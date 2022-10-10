@@ -424,8 +424,8 @@ void UpdateCamera(Camera *camera)
             //CAMERA.angle.y -= mousePositionDelta.y*CAMERA_MOUSE_MOVE_SENSITIVITY*GetFrameTime();
 
             // Angle clamp
-            if (CAMERA.angle.y > CAMERA_FIRST_PERSON_MIN_CLAMP*DEG2RAD) CAMERA.angle.y = CAMERA_FIRST_PERSON_MIN_CLAMP*DEG2RAD;
-            else if (CAMERA.angle.y < CAMERA_FIRST_PERSON_MAX_CLAMP*DEG2RAD) CAMERA.angle.y = CAMERA_FIRST_PERSON_MAX_CLAMP*DEG2RAD;
+            //if (CAMERA.angle.y > CAMERA_FIRST_PERSON_MIN_CLAMP*DEG2RAD) CAMERA.angle.y = CAMERA_FIRST_PERSON_MIN_CLAMP*DEG2RAD;
+            //else if (CAMERA.angle.y < CAMERA_FIRST_PERSON_MAX_CLAMP*DEG2RAD) CAMERA.angle.y = CAMERA_FIRST_PERSON_MAX_CLAMP*DEG2RAD;
 
             // Calculate translation matrix
             Matrix matTranslation = { 1.0f, 0.0f, 0.0f, 0.0f,

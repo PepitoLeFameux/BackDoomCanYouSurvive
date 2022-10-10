@@ -9,13 +9,13 @@
 /*  TODO en priorité : Tirer avec une arme (affichage sprite de l'arme, curseur, munitions, rechargement, cadence de tir, dégats)
                       Ennemis se dirigent aléatoirement et tirent vers le joueur (attaque à distance) 
                       Mettre PV pour joueur/ennemis + écran de mort 
-                      dégâts provoqués par ennemis
+                      X dégâts provoqués par ennemis
                       Réparer déplacement latéral caméra
                       Changer texture du plafond
                       changer map
                       ATH : arme, PV, munitions, score, (minimap ?) + devient rouge lorsque des dégâts sont pris
                       timer
-                      Faire spawn plusieurs ennemis (stockage dans un array ?)
+                      X Faire spawn plusieurs ennemis (stockage dans un array ?)
                       Sons ambiance : marche, tirs, ennemis.
                       gestion du score
                       compteur fps
@@ -123,15 +123,16 @@ void Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition)
 
 
 
-
+#define PLEIN_ECRAN 0
+#define NB_ENNEMIS 50
 
 int main(int argc, char const *argv[])
 {
-    const int largeur = 1080;
-    const int hauteur = 720;
+    const int largeur = (PLEIN_ECRAN == 1)? 1920 : 1080;
+    const int hauteur = (PLEIN_ECRAN == 1)? 1080 : 720;
 
     InitWindow(largeur, hauteur, "BACKDOOM");
-    //SetWindowState(FLAG_FULLSCREEN_MODE);
+    SetWindowState((PLEIN_ECRAN == 1)?FLAG_FULLSCREEN_MODE : 0);
 
     // On fait la caméra
     Camera3D camera = Camera();
@@ -163,7 +164,7 @@ int main(int argc, char const *argv[])
     modeleMap.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureMap;
 
     // Init ennemis
-    int m = 5;
+    int m = NB_ENNEMIS;
     Ennemi ennemi[m];
     for(int n=0; n<m; n++)
         ennemi[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur);
@@ -205,7 +206,7 @@ int main(int argc, char const *argv[])
                 for(int n=0; n<m; n++)
                     ennemi[n].Render();
             EndMode3D();
-            
+
             DrawFPS(10,10);
             std::string strPv = "PV : " + std::to_string(pvJoueur);
             DrawText(strPv.c_str(), 10, 30, 30, GREEN);
