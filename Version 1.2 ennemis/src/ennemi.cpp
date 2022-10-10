@@ -20,17 +20,17 @@ void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPositi
 
 void Ennemi::SetRandomType(void)
 {
-    const int nombreDeTypes = 3; // A CHANGER QUAND ON RAJOUTE DES ENNEMIS
-    float listeTailles[] =  {1.0f,  0.9f,   1.6f}; //
-    int listePvs[] =        {100,   100,    200};      //
-    int listeDegats[] =     {5,     20,     30};
+    const int nombreDeTypes = 4; // A CHANGER QUAND ON RAJOUTE DES ENNEMIS
+    float listeTailles[] =  {1.0f,  0.9f,   1.6f,   0.4f}; //
+    int listePvs[] =        {100,   100,    200,    34555555};      //
+    int listeDegats[] =     {5,     20,     30,     -20};
 
-    typeEnnemi = GetRandomValue(0, nombreDeTypes-1);
+    typeEnnemi = 3;
     taille = listeTailles[typeEnnemi];
     defaultY = taille/4.0f;
     distanceCollision = taille/6.0f;
     pvMax = listePvs[typeEnnemi];
-    degats = listeDegats[0];
+    degats = listeDegats[typeEnnemi];
 
     std::string path = "../resources/ennemis/" + std::to_string(typeEnnemi) + ".png";
     texture = LoadTexture(path.c_str());
@@ -219,7 +219,7 @@ void Ennemi::Action()
     if(dead){;}
     else{
     Vector3 cameraPos = (*camera).position;
-    //if(VisionDirecte(position, (*camera).position)) poursuite = true;
+    if(VisionDirecte(position, (*camera).position)) poursuite = true;
     //std::cout << "d " << destination.x << " " << destination.z << std::endl;
 
     if(poursuite)

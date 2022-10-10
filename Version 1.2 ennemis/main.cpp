@@ -124,7 +124,7 @@ void Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition)
 
 
 #define PLEIN_ECRAN 0
-#define NB_ENNEMIS 50
+#define NB_ENNEMIS 500
 
 int main(int argc, char const *argv[])
 {
