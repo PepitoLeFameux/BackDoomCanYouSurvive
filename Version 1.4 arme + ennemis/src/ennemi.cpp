@@ -16,6 +16,7 @@ void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPositi
     vitesse = 1.3f;
     tempsDerniereAction = GetTime();
     poursuite = false;
+    dead = false;
     SetRandomType();
     SetRandomPos();
 }
@@ -24,19 +25,21 @@ void Ennemi::SetRandomType(void)
 {
     const int nombreDeTypes = 4; // A CHANGER QUAND ON RAJOUTE DES ENNEMIS
     float listeTailles[] =  {1.0f,  0.9f,   1.6f,   0.4f}; //
-    int listePvs[] =        {100,   100,    200,    34555555};      //
+    int listePvs[] =        {100,   100,    200,    3455};      //
     int listeDegats[] =     {5,     20,     30,     -20};
 
-    typeEnnemi = GetRandomValue(0, nombreDeTypes-1);
+    typeEnnemi = 0;
     taille = listeTailles[typeEnnemi];
     defaultY = taille/4.0f;
     distanceCollision = taille/6.0f;
     pvMax = listePvs[typeEnnemi];
+    pv = pvMax;
     degats = listeDegats[typeEnnemi];
 }
 
-bool Ennemi::VisionDirecte(Vector3 pos1, Vector3 pos2)
+bool Ennemi::VisionDirecte(Vector3 pos1)
 {
+    Vector3 pos2 = position;
     bool visionDirecte = true;
     Vector2 croisement;
     float decal = 0.1f;
@@ -60,7 +63,7 @@ bool Ennemi::VisionDirecte(Vector3 pos1, Vector3 pos2)
 bool Ennemi::CheckCollisionLineCircle(Vector2 startPos, Vector2 endPos, Vector2 center,
                                       float radius, Vector2 *pointCollision)
 {
-    float portions = (float) 8;
+    float portions = (float) 15;
     Vector2 pos1, pos2;
     for(float alpha=0; alpha < 2*PI*(1.0f - 1.0f/portions); alpha += 2*PI/8.0f)
     {
@@ -151,8 +154,8 @@ void Ennemi::SetRandomPos()
     {
         position = GetRandomPos();
     }
-    while (VisionDirecte(cameraPos, position)
-        // || DistanceHorizontale(cameraPos, position) < 3
+    while (VisionDirecte(cameraPos)
+        || DistanceHorizontale(cameraPos, position) < 3
         );
     anciennePosition = position;
 }
@@ -160,13 +163,13 @@ void Ennemi::SetRandomPos()
 void Ennemi::Damaged(int dmg)
 {
     pv -= dmg;
-    if(pv <= 0){dead = true;}
+    if(pv <= 0) dead = true;
 }
 
 void Ennemi::Render()
 {
-    if(dead){;}
-    else{
+    if(!dead)
+    {
     DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/8.0f, taille/8.0f, 0.0001f, 16, DARKGRAY);
     DrawBillboard(*camera, listeTextures[typeEnnemi], position, taille/2.0f, WHITE);
     }
@@ -214,10 +217,11 @@ bool Ennemi::CourtVersDestination()
 
 void Ennemi::Action()
 {
-    if(dead){;}
-    else{
+    if(!dead)
+    {
     Vector3 cameraPos = (*camera).position;
-    if(VisionDirecte(position, (*camera).position)) poursuite = true;
+    //if(VisionDirecte(position, (*camera).position)) poursuite = true;
+    //std::cout << "d " << destination.x << " " << destination.z << std::endl;
 
     if(poursuite)
     {
@@ -233,7 +237,7 @@ void Ennemi::Action()
                 do
                 {
                     destination = GetRandomPos();
-                } while (!VisionDirecte(position, destination));
+                } while (!VisionDirecte(destination));
                 
             }
             else             // Standby

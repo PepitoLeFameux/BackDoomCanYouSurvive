@@ -139,6 +139,9 @@ void SetCameraMoveControls(int keyFront, int keyBack,
 //----------------------------------------------------------------------------------
 // Defines and Macros
 //----------------------------------------------------------------------------------
+#ifndef SENSI
+    #define SENSI 0.5
+#endif
 #ifndef PI
     #define PI 3.14159265358979323846
 #endif
@@ -279,7 +282,7 @@ void SetCameraMode(Camera camera, int mode)
 //       Keys:  IsKeyDown()
 void UpdateCamera(Camera *camera)
 {
-    static float swingCounter = 0.0f;    // Used for 1st person swinging movement
+    //static float swingCounter = 0.0f;    // Used for 1st person swinging movement
 
     // TODO: Compute CAMERA.targetDistance and CAMERA.angle here (?)
 
@@ -420,7 +423,7 @@ void UpdateCamera(Camera *camera)
                                    sinf(CAMERA.angle.x)*direction[MOVE_RIGHT])*PLAYER_MOVEMENT_SENSITIVITY*GetFrameTime();
 
             // Camera orientation calculation
-            CAMERA.angle.x -= mousePositionDelta.x*CAMERA_MOUSE_MOVE_SENSITIVITY*GetFrameTime();
+            CAMERA.angle.x -= SENSI*mousePositionDelta.x*CAMERA_MOUSE_MOVE_SENSITIVITY*GetFrameTime();
             //CAMERA.angle.y -= mousePositionDelta.y*CAMERA_MOUSE_MOVE_SENSITIVITY*GetFrameTime();
 
             // Angle clamp

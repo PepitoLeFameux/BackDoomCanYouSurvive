@@ -191,12 +191,12 @@ int main(int argc, char const *argv[])
                     previousTime = time;
                     ammo --;
                     debutAnim = 1;
+                    }
                 }
-            }
-        } 
+            } 
         verifTir = false;
         nbTir = 1;
-     }
+        }
     
 
         BeginDrawing();
@@ -210,7 +210,8 @@ int main(int argc, char const *argv[])
                  DrawBillboard(camera,reticule,posWeapon,0.1645f,WHITE);
 
 //ANIMATION DU TIR DE L'ARME.......................................................................................
-                DrawBillboard(camera,weapon,posWeapon,0.1640f,WHITE);  
+                DrawBillboard(camera,weapon,posWeapon,0.1640f,WHITE); 
+                
                 if ((debutAnim == 1 || currentFrame != 1)) {
                     
                     if (frameCounter >= (60/frameSpeed)){ //Vitesse d'amination

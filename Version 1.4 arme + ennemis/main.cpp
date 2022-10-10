@@ -3,9 +3,10 @@
 #include "iostream"
 #include "cmath"
 #include "rcamera.h"
-#include "ennemi.h"
 #include "algorithm"
 #include "string"
+#include "ennemi.h"
+#include "arme.h"
 
 /*  TODO en priorité : Tirer avec une arme (affichage sprite de l'arme, curseur, munitions, rechargement, cadence de tir, dégats)
                       Ennemis se dirigent aléatoirement et tirent vers le joueur (attaque à distance) 
@@ -126,13 +127,8 @@ Texture2D *InitTexturesEnnemis()
 
 
 
-
-
-
-
 #define PLEIN_ECRAN 0
-#define NB_ENNEMIS 300
-#define FPS_MAX 60
+#define NB_ENNEMIS 40
 
 int main(int argc, char const *argv[])
 {
@@ -174,24 +170,36 @@ int main(int argc, char const *argv[])
 
     // Init ennemis
     int m = NB_ENNEMIS;
-    Ennemi ennemi[m];
-    for(int n=0; n<m; n++) ennemi[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis);
+    Ennemi ennemis[m];
+    for(int n=0; n<m; n++) ennemis[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis);
+
+    // Init arme
+    int frameCounter = 0;
+    Arme arme;
+    arme.Init(largeur, hauteur, &frameCounter, ennemis, NB_ENNEMIS, &camera);
 
     SetCameraMode(camera, CAMERA_FIRST_PERSON);
-    SetTargetFPS(FPS_MAX);
+    SetTargetFPS(60);
 
     while(!WindowShouldClose())
     {
         anciennePosition = camera.position;
         UpdateCamera(&camera);
+        frameCounter++;
         
-        // Action Ennemis
-        for(int n=0; n<m; n++) ennemi[n].Action();
+        // Action arme
+        if(IsKeyPressed(KEY_R))
+            arme.Recharger();
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+            arme.Tirer();
 
-        // Tri ennemis par proximité avec le joueur pour afficher les plus éloignés en premier
-        std::sort(ennemi, ennemi + m,
+        // Action ennemis
+        for(int n=0; n<m; n++) ennemis[n].Action();
+
+        // Tri ennemis par proximité avec le joueur dans le sens croissant
+        std::sort(ennemis, ennemis + m,
           [](Ennemi const & a, Ennemi const & b) -> bool
-          { return a.distJoueur > b.distJoueur; } );
+          { return a.distJoueur < b.distJoueur; } );
 
         // Déplacement caméra
         Deplacement(&camera, &vitesse, anciennePosition);
@@ -208,9 +216,10 @@ int main(int argc, char const *argv[])
                 // Affichage map
                 DrawModel(modeleMap, mapPosition, 1.0f, WHITE);
 
-                // Affichage ennemis
-                for(int n=0; n<m; n++) ennemi[n].Render();
+                // Affichage ennemis du plus loin au plus proche
+                for(int n=m-1; n>=0; n--) ennemis[n].Render();
             EndMode3D();
+            arme.Render();
 
             DrawFPS(10,10);
             std::string strPv = "PV : " + std::to_string(pvJoueur);
