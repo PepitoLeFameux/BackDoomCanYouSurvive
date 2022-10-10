@@ -120,14 +120,11 @@ void Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition)
 Texture2D *InitTexturesEnnemis()
 {
     int n=0;
+    static Texture2D listeTextures[30];
     while (FileExists(((std::string)("../resources/ennemis/" + std::to_string(n) + ".png")).c_str()))
     {
+        listeTextures[n] = LoadTexture(((std::string)("../resources/ennemis/" + std::to_string(n) + ".png")).c_str());
         n++;
-    }
-    static Texture2D listeTextures[30];
-    for(int i=0; i<n; i++)
-    {
-        listeTextures[i] = LoadTexture(((std::string)("../resources/ennemis/" + std::to_string(i) + ".png")).c_str());
     }
     return listeTextures;
 }
@@ -139,7 +136,7 @@ Texture2D *InitTexturesEnnemis()
 
 
 #define PLEIN_ECRAN 0
-#define NB_ENNEMIS 1000
+#define NB_ENNEMIS 300
 
 int main(int argc, char const *argv[])
 {
