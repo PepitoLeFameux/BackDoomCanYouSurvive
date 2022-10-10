@@ -7,7 +7,8 @@ class Ennemi
         Vector3 position;
         float distJoueur;
 
-        void Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera, int *pvJoueur);
+        void Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera,
+                  int *pvJoueur, Texture2D *listeTextures);
         void Action();
         void Damaged(int dmg);
         void Render();
@@ -31,8 +32,7 @@ class Ennemi
         float taille;
         float distanceCollision;
         float defaultY;
-        Texture texture;
-        Texture ombre;
+        Texture2D *listeTextures;
 
         bool poursuite;
         bool actionEnCours;

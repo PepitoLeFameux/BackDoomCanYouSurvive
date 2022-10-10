@@ -4,13 +4,15 @@
 #include "string"
 #include "iostream"
 
-void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera, int *pvJoueur)
+void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera,
+                  int *pvJoueur, Texture2D *listeTextures)
 {
     Ennemi::mapCouleurs = mapCouleurs;
     Ennemi::dimensionsMap = dimensionsMap;
     Ennemi::mapPosition = mapPosition;
     Ennemi::camera = camera;
     Ennemi::pvJoueur = pvJoueur;
+    Ennemi::listeTextures = listeTextures;
     vitesse = 1.3f;
     tempsDerniereAction = GetTime();
     poursuite = false;
@@ -25,16 +27,12 @@ void Ennemi::SetRandomType(void)
     int listePvs[] =        {100,   100,    200,    34555555};      //
     int listeDegats[] =     {5,     20,     30,     -20};
 
-    typeEnnemi = 3;
+    typeEnnemi = GetRandomValue(0, nombreDeTypes-1);
     taille = listeTailles[typeEnnemi];
     defaultY = taille/4.0f;
     distanceCollision = taille/6.0f;
     pvMax = listePvs[typeEnnemi];
     degats = listeDegats[typeEnnemi];
-
-    std::string path = "../resources/ennemis/" + std::to_string(typeEnnemi) + ".png";
-    texture = LoadTexture(path.c_str());
-    ombre = LoadTexture("../resources/ennemis/shadow.png");
 }
 
 bool Ennemi::VisionDirecte(Vector3 pos1, Vector3 pos2)
@@ -169,8 +167,8 @@ void Ennemi::Render()
 {
     if(dead){;}
     else{
-    DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/6.0f, taille/6.0f, 0.0001f, 16, DARKGRAY);
-    DrawBillboard(*camera, texture, position, taille/2.0f, WHITE);
+    DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/8.0f, taille/8.0f, 0.0001f, 16, DARKGRAY);
+    DrawBillboard(*camera, listeTextures[typeEnnemi], position, taille/2.0f, WHITE);
     }
 }
 
@@ -219,7 +217,7 @@ void Ennemi::Action()
     if(dead){;}
     else{
     Vector3 cameraPos = (*camera).position;
-    if(VisionDirecte(position, (*camera).position)) poursuite = true;
+    //if(VisionDirecte(position, (*camera).position)) poursuite = true;
     //std::cout << "d " << destination.x << " " << destination.z << std::endl;
 
     if(poursuite)

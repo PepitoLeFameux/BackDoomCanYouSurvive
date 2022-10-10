@@ -117,6 +117,21 @@ void Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition)
                                    *vitesse*ecartPosition.z + anciennePosition.z};
 }
 
+Texture2D *InitTexturesEnnemis()
+{
+    int n=0;
+    while (FileExists(((std::string)("../resources/ennemis/" + std::to_string(n) + ".png")).c_str()))
+    {
+        n++;
+    }
+    static Texture2D listeTextures[30];
+    for(int i=0; i<n; i++)
+    {
+        listeTextures[i] = LoadTexture(((std::string)("../resources/ennemis/" + std::to_string(i) + ".png")).c_str());
+    }
+    return listeTextures;
+}
+
 
 
 
@@ -124,7 +139,7 @@ void Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition)
 
 
 #define PLEIN_ECRAN 0
-#define NB_ENNEMIS 500
+#define NB_ENNEMIS 1000
 
 int main(int argc, char const *argv[])
 {
@@ -162,13 +177,12 @@ int main(int argc, char const *argv[])
     // Textures
     Texture2D textureMap = LoadTexture("../resources/map/mapAtlas.png");
     modeleMap.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureMap;
+    Texture2D *texturesEnnemis = InitTexturesEnnemis();
 
     // Init ennemis
     int m = NB_ENNEMIS;
     Ennemi ennemi[m];
-    for(int n=0; n<m; n++)
-        ennemi[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur);
-
+    for(int n=0; n<m; n++) ennemi[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis);
 
     SetCameraMode(camera, CAMERA_FIRST_PERSON);
     SetTargetFPS(60);
@@ -179,8 +193,7 @@ int main(int argc, char const *argv[])
         UpdateCamera(&camera);
         
         // Action Ennemis
-        for(int n=0; n<m; n++)
-            ennemi[n].Action();
+        for(int n=0; n<m; n++) ennemi[n].Action();
 
         // Tri ennemis par proximité avec le joueur pour afficher les plus éloignés en premier
         std::sort(ennemi, ennemi + m,
@@ -203,8 +216,7 @@ int main(int argc, char const *argv[])
                 DrawModel(modeleMap, mapPosition, 1.0f, WHITE);
 
                 // Affichage ennemis
-                for(int n=0; n<m; n++)
-                    ennemi[n].Render();
+                for(int n=0; n<m; n++) ennemi[n].Render();
             EndMode3D();
 
             DrawFPS(10,10);
