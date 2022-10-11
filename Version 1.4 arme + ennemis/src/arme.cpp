@@ -47,14 +47,15 @@ void Arme::Tirer()
             for(int n=0; n<nbEnnemis; n++)
             {
                 Ennemi *ennemi = &listeEnnemis[n];
-                if((*ennemi).VisionDirecte(camera->position) &&
-                   (*ennemi).CheckCollisionLineCircle((Vector2){camera->position.x, camera->position.z},
+                if(ennemi->VisionDirecte(camera->position) &&
+                   ennemi->CheckCollisionLineCircle((Vector2){camera->position.x, camera->position.z},
                                                       (Vector2){Vector3Lerp(camera->position, camera->target, range*10.0f/3.0f).x,
                                                                 Vector3Lerp(camera->position, camera->target, range*10.0f/3.0f).z},
-                                                      (Vector2){(*ennemi).position.x, (*ennemi).position.z},
-                                                      (*ennemi).taille/6.0f, &pointCollision))
+                                                      (Vector2){ennemi->position.x, ennemi->position.z},
+                                                      ennemi->taille/6.0f, &pointCollision) &&
+                    !(ennemi->dead))
                 {
-                    (*ennemi).Damaged(damage);
+                    ennemi->Damaged(damage);
                     break;
                 }
             }
@@ -65,10 +66,10 @@ void Arme::Tirer()
 void Arme::Render()
 {
     DrawTexturePro(weapon[currentFrame], (Rectangle){0.0f, 0.0f, (float)weapon[0].width, (float)weapon[0].height},
-                            (Rectangle){(float)largeurEcran/2.0f, (float)hauteurEcran/2.0f,
-                                        (float)largeurEcran, (float)hauteurEcran},
-                            (Vector2){(float)largeurEcran/2.0f,(float)hauteurEcran/2.0f},
-                            0.0f, WHITE);  
+                   (Rectangle){(float)largeurEcran/2.0f, (float)hauteurEcran/2.0f,
+                               (float)largeurEcran, (float)hauteurEcran},
+                   (Vector2){(float)largeurEcran/2.0f,(float)hauteurEcran/2.0f},
+                   0.0f, WHITE);  
 
     if (animTir && *frameCounter - previousFrame >= (60/frameSpeed)){ //Vitesse d'amination
             previousFrame = *frameCounter;

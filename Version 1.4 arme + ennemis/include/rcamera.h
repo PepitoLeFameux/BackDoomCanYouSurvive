@@ -140,7 +140,7 @@ void SetCameraMoveControls(int keyFront, int keyBack,
 // Defines and Macros
 //----------------------------------------------------------------------------------
 #ifndef SENSI
-    #define SENSI 0.5
+    #define SENSI 0.4
 #endif
 #ifndef PI
     #define PI 3.14159265358979323846
