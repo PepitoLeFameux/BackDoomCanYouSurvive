@@ -128,7 +128,7 @@ Texture2D *InitTexturesEnnemis()
 
 
 #define PLEIN_ECRAN 0
-#define NB_ENNEMIS 40
+#define NB_ENNEMIS 100
 
 int main(int argc, char const *argv[])
 {
@@ -167,11 +167,12 @@ int main(int argc, char const *argv[])
     Texture2D textureMap = LoadTexture("../resources/map/mapAtlas.png");
     modeleMap.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureMap;
     Texture2D *texturesEnnemis = InitTexturesEnnemis();
+    Texture2D textureOmbre = LoadTexture("../resources/ennemis/shadow.png");
 
     // Init ennemis
     int m = NB_ENNEMIS;
     Ennemi ennemis[m];
-    for(int n=0; n<m; n++) ennemis[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis);
+    for(int n=0; n<m; n++) ennemis[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis, &textureOmbre);
 
     // Init arme
     int frameCounter = 0;

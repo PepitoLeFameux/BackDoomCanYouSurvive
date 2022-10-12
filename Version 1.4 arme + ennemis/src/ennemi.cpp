@@ -1,11 +1,12 @@
 #include "ennemi.h"
 #include "raylib.h"
+#include "raymath.h"
 #include "cmath"
 #include "string"
 #include "iostream"
 
 void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera,
-                  int *pvJoueur, Texture2D *listeTextures)
+                  int *pvJoueur, Texture2D *listeTextures, Texture2D *textureOmbre)
 {
     Ennemi::mapCouleurs = mapCouleurs;
     Ennemi::dimensionsMap = dimensionsMap;
@@ -13,6 +14,7 @@ void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPositi
     Ennemi::camera = camera;
     Ennemi::pvJoueur = pvJoueur;
     Ennemi::listeTextures = listeTextures;
+    Ennemi::textureOmbre = textureOmbre;
     vitesse = 1.3f;
     tempsDerniereAction = GetTime();
     poursuite = false;
@@ -170,7 +172,11 @@ void Ennemi::Render()
 {
     if(!dead)
     {
-    DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/8.0f, taille/8.0f, 0.0001f, 16, DARKGRAY);
+    //DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/8.0f, taille/8.0f, 0.0001f, 16, DARKGRAY);
+    DrawBillboardPro(*camera, *textureOmbre,
+                     (Rectangle){0.0f, 0.0f, (float)textureOmbre->width, (float)textureOmbre->height},
+                     (Vector3){position.x, 0.01f, position.z}, (Vector3){Vector3Subtract(position, camera->position).x, 0.0f, Vector3Subtract(position, camera->position).z},
+                     (Vector2){taille/4.0f, taille/8.0f}, (Vector2){(float)textureOmbre->width/2.0f, (float)textureOmbre->width/2.0f}, 0.0f, WHITE);
     DrawBillboard(*camera, listeTextures[typeEnnemi], position, taille/2.0f, WHITE);
     }
 }
