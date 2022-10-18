@@ -20,6 +20,7 @@ void Arme::Init(int largeurEcran, int hauteurEcran, int* frameCounter, Ennemi *l
     previousTime = GetTime();
     animTir = false;
     numeroArme = 0;
+    nextNumero = 0;
     weaponAtlas = LoadTexture("../resources/weapons/weaponAtlas.png");
     reticuleIn = LoadTexture("../resources/weapons/reticlein.png");
     reticuleOut = LoadTexture("../resources/weapons/reticleout.png");
@@ -34,10 +35,10 @@ void Arme::CheckSwitchArme()
         switchEnCours = true;
         switchDecal = 0.0f;
         nextNumero = 0;
-        if(wheelMovement == -1)
-        for(int n = 1; n<10; n++) if (unlocked[(numeroArme + n)%6]) {nextNumero = (numeroArme + n)%6; break;}
-        else if(wheelMovement == 1)
-        for(int n = 1; n<10; n++) if (unlocked[(numeroArme - n)%6]) {nextNumero = (numeroArme - n)%6; break;}
+        if(wheelMovement <= -1)
+            for(int n = 1; n<10; n++) if (unlocked[(numeroArme + n)%6]) {nextNumero = (numeroArme + n)%6; break;}
+        if(wheelMovement >= 1)
+            for(int n = 1; n<10; n++) if (unlocked[(numeroArme - n + 6)%6]) {nextNumero = (numeroArme - n + 6)%6; break;}
     }
     if(switchEnCours) SwitchArmeAnimation();
 }
@@ -57,7 +58,6 @@ void Arme::Action()
     reloadPressed = IsKeyPressed(KEY_R);
     mouseDown = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
     mousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
-    std::cout << nextNumero << std::endl;
 
     CheckSwitchArme();
 
