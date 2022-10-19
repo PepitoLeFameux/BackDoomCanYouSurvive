@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "ennemi.h"
 #include "cmath"
+#include "projectile.h"
 
 #ifndef ARME_H
 #define ARME_H
@@ -11,15 +12,17 @@ class Arme
     int largeurEcran;
     int hauteurEcran;
     Camera *camera;
+    Projectile *listeProjectiles;
+    int nbProjectilesMax;
 
     int numeroArme;
 
     bool unlocked[9] = {true, true, true, true, true, true, true, true, true};
-    int listeDegats[9] = {30, 20, 30, 60, 100*10, 30*10};
-    float listePortees[9] = {0.8f, 1.2f, 5.0f, 1.5f, 2.0f, 8.0f};
-    float listeAngles[9] = {PI/6.0f, PI/6.0f, 0.0f, PI/6.0f, PI/6.0f, 0.0f,};
-    int maxTargets[9] = {1, 3, 1, 3, 6, 1, 100, };
-    double reloadTime[9] = {0, 0, 1.5, 2.5, -1, 0, 3, 4};
+    int listeDegats[9] = {30, 20, 30, 60, 100, 30, 300};
+    float listePortees[9] = {0.8f, 1.2f, 5.0f, 1.5f, 2.0f, 8.0f, 100.0f};
+    float listeAngles[9] = {PI/6.0f, PI/6.0f, 0.0f, PI/6.0f, PI/6.0f, 0.0f, -1.0f};
+    int maxTargets[9] = {1, 3, 1, 3, 6, 1, -1};
+    double reloadTime[9] = {0, 0, 1.5, 2.5, -1, 0, 4};
     int clipAmmo[9] = {0, -1, 13, 5, 2, -1, 1, 666, 666};
     int clip[9]     = {0, 0, 13, 5, 2, 999, 1, 666, 666};
     int ammo[9]     = {0, 999, 999, 999, 999, 999, 999, 999, 999};
@@ -67,7 +70,7 @@ class Arme
     int nbEnnemis;
 
     void Init(int largeurEcran, int hauteurEcran, int *frameCounter, Ennemi *listeEnnemisn,
-              int nbEnnemis, Camera *camera);
+              int nbEnnemis, Camera *camera, Projectile *listeProjectiles, int nbProjectilesMax);
     
 
     void Action();
@@ -93,6 +96,8 @@ class Arme
     bool fire = true;
     bool powered = false;
 
+    void LaunchProjectile(Vector3 position, Vector3 direction, std::string type);
+
     void ActionFists();
     void ActionChainsaw();
     void ActionGun();
@@ -110,7 +115,7 @@ class Arme
     float switchDecal;
     bool goUp;
 
-    private:
+    int FindNewSlot();
 };
 
 class GunSpecs{

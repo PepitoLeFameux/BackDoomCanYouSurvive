@@ -5,9 +5,10 @@
 #include "cmath"
 #include "iostream"
 #include "ennemi.h"
+#include "projectile.h"
 
 void Arme::Init(int largeurEcran, int hauteurEcran, int* frameCounter, Ennemi *listeEnnemis,
-                int nbEnnemis, Camera *camera)
+                int nbEnnemis, Camera *camera, Projectile *listeProjectiles, int nbProjectilesMax)
 {
     Arme::largeurEcran = largeurEcran;
     Arme::hauteurEcran = hauteurEcran;
@@ -15,6 +16,8 @@ void Arme::Init(int largeurEcran, int hauteurEcran, int* frameCounter, Ennemi *l
     Arme::listeEnnemis = listeEnnemis;
     Arme::nbEnnemis = nbEnnemis;
     Arme::camera = camera;
+    Arme::listeProjectiles = listeProjectiles;
+    Arme::nbProjectilesMax = nbProjectilesMax;
     animFrame = 0;
     previousFrame = *frameCounter;
     previousTime = GetTime();
@@ -36,9 +39,9 @@ void Arme::CheckSwitchArme()
         switchDecal = 0.0f;
         nextNumero = 0;
         if(wheelMovement <= -1)
-            for(int n = 1; n<10; n++) if (unlocked[(numeroArme + n)%6]) {nextNumero = (numeroArme + n)%6; break;}
+            for(int n = 1; n<10; n++) if (unlocked[(numeroArme + n)%7]) {nextNumero = (numeroArme + n)%7; break;}
         if(wheelMovement >= 1)
-            for(int n = 1; n<10; n++) if (unlocked[(numeroArme - n + 6)%6]) {nextNumero = (numeroArme - n + 6)%6; break;}
+            for(int n = 1; n<10; n++) if (unlocked[(numeroArme - n + 7)%7]) {nextNumero = (numeroArme - n + 7)%7; break;}
     }
     if(switchEnCours) SwitchArmeAnimation();
 }
@@ -67,7 +70,7 @@ void Arme::Action()
     if(numeroArme == 3) ActionSpas12();
     if(numeroArme == 4) ActionChasseur();
     if(numeroArme == 5) ActionMinigun();
-    // if(numeroArme == 6) ActionRPG();
+    if(numeroArme == 6) ActionRPG();
     // if(numeroArme == 7) ActionPlasma();
     // if(numeroArme == 8) ActionBFG();
 }
@@ -121,7 +124,7 @@ void Arme::ActionChainsaw()
     
     clipAmmo[numeroArme] = ammo[numeroArme];
 
-    if(mouseDown && clipAmmo[numeroArme] > 0 && !switchEnCours)
+    if(mouseDown || mousePressed && clipAmmo[numeroArme] > 0 && !switchEnCours)
         powered = true;
     else
         powered = false;
@@ -295,10 +298,54 @@ void Arme::ActionMinigun()
     
     clipAmmo[numeroArme] = ammo[numeroArme];
 
-    if(mouseDown && clipAmmo[numeroArme] > 0 && !switchEnCours)
+    if(mouseDown || mousePressed && clipAmmo[numeroArme] > 0 && !switchEnCours)
         powered = true;
     else
         powered = false;
+}
+
+void Arme::ActionRPG()
+{
+    int numeroFramesAnimation[] = {0, 1, 2, 3, 4, 5};
+    int dureeFrames[] = {0, 6, 6, 6, 6, 16};
+    int totalFrames = sizeof(numeroFramesAnimation)/sizeof(int);
+
+    int frameDisplayed = numeroFramesAnimation[animFrame];
+    toBeRendered = framesRPG[frameDisplayed];
+
+    if (animFrame == 1 && fire)
+    {
+        LaunchProjectile(camera->position, camera->target, "rocket");
+        fire = false;
+    }
+        
+    if ((animTir && *frameCounter - previousFrame >= dureeFrames[animFrame]) || (mousePressed && clipAmmo[numeroArme] > 0 && not(reloadEnCours)) && !switchEnCours)
+    {
+        animTir = true;
+        previousFrame = *frameCounter;
+        animFrame = (animFrame + 1) % totalFrames;
+        if(animFrame == 0) {animTir = false; clipAmmo[numeroArme] --; fire = true;}
+    }
+
+    else if((reloadPressed || reloadEnCours ) && clip[numeroArme] > clipAmmo[numeroArme] && ammo[numeroArme] > 0 && !switchEnCours)
+    {
+        if(not(reloadEnCours))
+        {
+            reloadStart = GetTime();
+            reloadLength = reloadTime[numeroArme];
+            reloadEnCours = true;
+        }
+
+        if(GetTime() - reloadStart > reloadLength)
+        {
+            while(ammo[numeroArme] > 0 && clipAmmo[numeroArme] < clip[numeroArme])
+            {
+                ammo[numeroArme] --;
+                clipAmmo[numeroArme] ++;
+            }
+            reloadEnCours = false;
+        }
+    }
 }
 
 void Arme::Fire(int damage, float range, float angle, int maxTargets)
@@ -325,10 +372,24 @@ void Arme::Fire(int damage, float range, float angle, int maxTargets)
     }
 }
 
+int Arme::FindNewSlot()
+{
+    for(int n=0; n< nbProjectilesMax; n++)
+    {
+        if(!listeProjectiles[n].active) return n;
+    }
+}
+
+void Arme::LaunchProjectile(Vector3 position, Vector3 direction, std::string type)
+{
+    int slot = FindNewSlot();
+    listeProjectiles[slot].Launch(camera->position, camera->target, type);
+}
+
 void Arme::GetWeaponTextures()
 {
-    std::string nomsArmes[] = {"fists", "chainsaw", "gun", "spas12", "chasseur", "minigun"};
-    Texture2D *listesFrames[] = {framesFists, framesChainsaw, framesGun, framesSpas12, framesChasseur, framesMinigun};
+    std::string nomsArmes[] = {"fists", "chainsaw", "gun", "spas12", "chasseur", "minigun", "rpg"};
+    Texture2D *listesFrames[] = {framesFists, framesChainsaw, framesGun, framesSpas12, framesChasseur, framesMinigun, framesRPG};
     int m, n;
     for(m=0; m < *(&nomsArmes + 1) - nomsArmes; m++)
     {

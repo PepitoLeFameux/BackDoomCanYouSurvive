@@ -63,7 +63,7 @@ bool Ennemi::VisionDirecte(Vector3 pos1)
 bool Ennemi::CheckCollisionLineCircle(Vector2 startPos, Vector2 endPos, Vector2 center,
                                       float radius, Vector2 *pointCollision)
 {
-    float portions = (float) 15;
+    float portions = (float) 7;
     Vector2 pos1, pos2;
     for(float alpha=0; alpha < 2*PI*(1.0f - 1.0f/portions); alpha += 2*PI/8.0f)
     {

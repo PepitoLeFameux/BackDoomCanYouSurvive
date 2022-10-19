@@ -7,6 +7,7 @@
 #include "string"
 #include "ennemi.h"
 #include "arme.h"
+#include "projectile.h"
 
 /*  TODO en priorité : Tirer avec une arme (affichage sprite de l'arme, curseur, munitions, rechargement, cadence de tir, dégats)
                       Ennemis se dirigent aléatoirement et tirent vers le joueur (attaque à distance) 
@@ -125,10 +126,23 @@ Texture2D *InitTexturesEnnemis()
     return listeTextures;
 }
 
+Texture2D *InitTexturesRoquette()
+{
+    int n=0;
+    static Texture2D listeTextures[30];
+    while (FileExists(((std::string)("../resources/projectiles/rpg-" + std::to_string(n) + ".png")).c_str()))
+    {
+        listeTextures[n] = LoadTexture(((std::string)("../resources/projectiles/rpg-" + std::to_string(n) + ".png")).c_str());
+        n++;
+    }
+    return listeTextures;
+}
+
 
 
 #define PLEIN_ECRAN 0
-#define NB_ENNEMIS 500
+#define MAX_ENNEMIS 500
+#define MAX_PROJECTILES 50
 
 int main(int argc, char const *argv[])
 {
@@ -143,8 +157,8 @@ int main(int argc, char const *argv[])
     camera.position = (Vector3){0.0f, 0.4f, 2.0f};
     camera.target = (Vector3){0.0f, 0.4f, 0.5f};
     camera.up = (Vector3){0.0f, 1.0f, 0.0f};
-    camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
+    int frameCounter = 0;
 
     // Details joueur
     float distanceCollision = 0.2f;
@@ -167,17 +181,20 @@ int main(int argc, char const *argv[])
     Texture2D textureMap = LoadTexture("../resources/map/mapAtlas.png");
     modeleMap.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = textureMap;
     Texture2D *texturesEnnemis = InitTexturesEnnemis();
+    Texture2D *texturesEffetsRoquette = InitTexturesRoquette();
 
     // Init ennemis
-    int m = NB_ENNEMIS;
-    Ennemi ennemis[m];
-    for(int n=0; n<m; n++) ennemis[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis);
+    Ennemi ennemis[MAX_ENNEMIS];
+    for(int n=0; n<MAX_ENNEMIS; n++) ennemis[n].Init(mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis);
+
+    // Init projectiles
+    Projectile projectiles[MAX_PROJECTILES];
+    for(int n=0; n<MAX_PROJECTILES; n++) projectiles[n].Init(ennemis, MAX_ENNEMIS, mapCouleurs, dimensionsMap, mapPosition, projectiles,
+                                                             MAX_PROJECTILES, &frameCounter, texturesEffetsRoquette, &camera, largeur, hauteur);
 
     // Init arme
-    int frameCounter = 0;
     Arme arme;
-    arme.Init(largeur, hauteur, &frameCounter, ennemis, NB_ENNEMIS, &camera);
-
+    arme.Init(largeur, hauteur, &frameCounter, ennemis, MAX_ENNEMIS, &camera, projectiles, MAX_PROJECTILES);
     SetCameraMode(camera, CAMERA_FIRST_PERSON);
     SetTargetFPS(60);
 
@@ -185,6 +202,9 @@ int main(int argc, char const *argv[])
     {
         // Action arme
         arme.Action();
+
+        // Action projectiles
+        for(int n=0; n<MAX_PROJECTILES; n++) projectiles[n].Action();
 
         // Caméra
         anciennePosition = camera.position;
@@ -197,10 +217,10 @@ int main(int argc, char const *argv[])
                                                   mapPosition, mapCouleurs, dimensionsMap);
 
         // Action ennemis
-        for(int n=0; n<m; n++) ennemis[n].Action();
+        for(int n=0; n<MAX_ENNEMIS; n++) ennemis[n].Action();
 
         // Tri ennemis par proximité avec le joueur dans le sens croissant
-        std::sort(ennemis, ennemis + m,
+        std::sort(ennemis, ennemis + MAX_ENNEMIS,
           [](Ennemi const & a, Ennemi const & b) -> bool
           { return a.distJoueur < b.distJoueur; } );
 
@@ -213,7 +233,10 @@ int main(int argc, char const *argv[])
                 DrawModel(modeleMap, mapPosition, 1.0f, WHITE);
 
                 // Affichage ennemis du plus loin au plus proche
-                for(int n=m-1; n>=0; n--) ennemis[n].Render();
+                for(int n=MAX_ENNEMIS-1; n>=0; n--) ennemis[n].Render();
+
+                // Affichage projectiles
+                for(int n=0; n<MAX_PROJECTILES; n++) projectiles[n].Render();
             EndMode3D();
             arme.Render();
 
