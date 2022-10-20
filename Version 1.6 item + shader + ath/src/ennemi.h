@@ -1,5 +1,5 @@
 #include "raylib.h"
-#include "shieldObject.h"
+#include "item.h"
 
 #ifndef ENNEMI_H
 #define ENNEMI_H
@@ -10,14 +10,18 @@ class Ennemi
         bool dead;
         int checkDrop ; 
         Vector3 position;
-        ShieldObject shieldObject ; 
+        Item item ; 
+        // ShieldObject shieldObject ; 
+        // AmmoItem ammoItem ;
+        //InstaKillItem instaKillItem ; 
         Vector3 posDead ; 
         float distJoueur;
         float taille;
         int pv;
         int *shieldJoueur ; 
-        int randomDrop ; 
+        int typeItem ; 
         int tagEnnemiPerso ; 
+        int itemType ; 
         static int nbKill;
         static int tagEnnemi ; 
         bool dropItem ; 

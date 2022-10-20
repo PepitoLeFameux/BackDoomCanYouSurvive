@@ -4,7 +4,7 @@
 #include "string"
 #include "iostream"
 #include <vector>
-#include "shieldObject.h"
+#include "item.h"
 #include "string"
 
 int Ennemi::tagEnnemi = 0;
@@ -23,9 +23,10 @@ void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPositi
     tempsDerniereAction = GetTime();
     poursuite = false;
     dead = false;
-    randomDrop = 0 ; 
-    dropItem = false ;
+    itemType = -1 ; 
+    typeItem = 0 ; 
     checkDrop = 0 ; 
+    dropItem = false ; 
     SetRandomType();
     SetRandomPos();
 
@@ -184,12 +185,17 @@ void Ennemi::Damaged(int dmg)
         nbKill = nbKill + 1 ;
         }
 
+// Init des items 
     if(dead == true){
-        randomDrop = GetRandomValue(1,10);
-        if(randomDrop == 1){
-            dropItem = true;
-            shieldObject.Init(camera);
+
+        typeItem = GetRandomValue(1,10);
+
+        if(typeItem == 1 || typeItem == 2 || typeItem == 3 || typeItem == 4 || typeItem == 5){
+            dropItem = true ;
+            item.Init(camera, typeItem);
         }
+
+
     }
 }
     
@@ -297,11 +303,11 @@ void Ennemi::Action()
     distJoueur = sqrt(pow(position.x - cameraPos.x, 2) + pow(position.z - cameraPos.z, 2));
     if(GetTime() - derniereAttaque > 1 && distJoueur < distanceCollision)
     {
-        if(shieldObject.shieldJoueurTest <= 0) *pvJoueur -= degats ;
-        else if (shieldObject.shieldJoueurTest - degats >= 0) shieldObject.shieldJoueurTest -= degats ;
-        else if (shieldObject.shieldJoueurTest - degats < 0){
-            *pvJoueur -= shieldObject.shieldJoueurTest ;
-            shieldObject.shieldJoueurTest = 0 ;
+        if(item.shieldJoueurTest <= 0) *pvJoueur -= degats ;
+        else if (item.shieldJoueurTest - degats >= 0) item.shieldJoueurTest -= degats ;
+        else if (item.shieldJoueurTest - degats < 0){
+            *pvJoueur -= item.shieldJoueurTest ;
+            item.shieldJoueurTest = 0 ;
         }
         derniereAttaque = GetTime();
     }

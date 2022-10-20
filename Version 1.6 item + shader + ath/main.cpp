@@ -8,7 +8,7 @@
 #include "ennemi.h"
 #include "arme.h"
 #include "ath.h"
-#include "shieldObject.h"
+#include "item.h"
 
 #define RLIGHTS_IMPLEMENTATION
 #include "rlights.h"
@@ -217,9 +217,10 @@ int main(int argc, char const *argv[])
     InitAudioDevice();
 
 
-    // Init shield item
-    ShieldObject shieldObjectInitial ;
-    shieldObjectInitial.Init(&camera) ;
+    // Init item
+
+    Item itemInitial ;
+    itemInitial.Init(&camera, 1);
     
     // Init ennemis
     int m = NB_ENNEMIS;
@@ -286,13 +287,16 @@ int main(int argc, char const *argv[])
                 // Affichage ennemis du plus loin au plus proche + item
                 for(int n=m-1; n>=0; n--){ 
                     ennemis[n].Render();
-                    if(ennemis[n].dropItem == true && ennemis[n].shieldObject.recupItem == false){
-                        ennemis[n].shieldObject.Render(ennemis[n].posDead);
+
+                    //if(ennemis[n].dropItem == true) printf("aaaaaaaaa");
+
+                    if((ennemis[n].dropItem == true)&& ennemis[n].item.recupItem == false){
+                        ennemis[n].item.Render(ennemis[n].posDead, ennemis[n].typeItem);
                     }
-                    if(ennemis[n].dropItem == true && ennemis[n].shieldObject.recupItem == true){
-                        ennemis[n].posDead.x = 1111111.0f ;
-                        ennemis[n].shieldObject.recupItem = false;
-                        ennemis[n].shieldObject.Render(ennemis[n].posDead);
+                    if(ennemis[n].dropItem == true && ennemis[n].item.recupItem == true){
+                         ennemis[n].posDead.x = 1111111.0f ;
+                         ennemis[n].item.recupItem = false;
+                         ennemis[n].item.Render(ennemis[n].posDead, ennemis[n].typeItem);
                     }
                 }
 
@@ -316,12 +320,9 @@ int main(int argc, char const *argv[])
     UnloadTexture(dimensionsMap);
     UnloadTexture(textureMap);
     UnloadModel(modeleMap);
-    UnloadSound(shieldObjectInitial.shieldSound1);
-    UnloadSound(shieldObjectInitial.shieldSound2);
-    UnloadSound(shieldObjectInitial.shieldSound3);
-    UnloadTexture(shieldObjectInitial.shield);
+     UnloadSound(itemInitial.soundItem);
+     UnloadTexture(itemInitial.textureItem);
     UnloadShader(shader);   
-
     CloseWindow();  
     return 0;
 }

@@ -3,7 +3,7 @@
 #include "arme.h"
 #include "string"
 #include "iostream"
-#include "shieldObject.h"
+#include "item.h"
 
 void Ath::Init(int largeurEcran, int hauteurEcran, Arme *arme, int *pvJoueur, int *nbKill){
     Ath::largeurEcran = largeurEcran ;
@@ -68,8 +68,8 @@ void Ath::Render(){
         DrawText(strPv.c_str(), 50, 845, 30, RED);
         heart = heart3 ;}
 
-    ShieldObject shieldObject ; 
-    std::string strShield = std::to_string(shieldObject.shieldJoueurTest);
+    Item item ; 
+    std::string strShield = std::to_string(item.shieldJoueurTest);
     DrawText(strShield.c_str(),50, 885, 30, SKYBLUE);
 
     // Affichage perso
