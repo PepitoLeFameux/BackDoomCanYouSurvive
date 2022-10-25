@@ -95,7 +95,7 @@ void Arme::ActionFists()
         animTir = true;
         previousFrame = *frameCounter;
         animFrame = (animFrame + 1) % totalFrames;
-        if(animFrame == 0) {animTir = false; clipAmmo[numeroArme] --; fire = true;}
+        if(animFrame == 0) {animTir = false; fire = true;}
     }
 }
 
@@ -248,9 +248,7 @@ void Arme::ActionChasseur()
         if(not(reloadEnCours))
         {
             reloadStart = GetTime();
-            double dureeReloadSpecial;
-            for(int n : dureeFramesReload) dureeReloadSpecial += n;
-            reloadLength = dureeReloadSpecial/60;
+            reloadLength = 100/60;
             reloadEnCours = true;
             animFrame = 0;
         }
