@@ -19,7 +19,7 @@
     #define GLSL_VERSION            100
 #endif
 
-#define PLEIN_ECRAN 1
+#define PLEIN_ECRAN 0
 #define NB_ENNEMIS 40
 
 /*  TODO en priorité : Tirer avec une arme (affichage sprite de l'arme, curseur, munitions, rechargement, cadence de tir, dégats)
@@ -178,14 +178,14 @@ int main(int argc, char const *argv[])
     shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
 
     int ambientLoc = GetShaderLocation(shader, "ambient"); //luminosité ambiante
-    float ambiante[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+    float ambiante[4] = { 1.1f, 1.1f, 1.1f, 1.1f };
     SetShaderValue(shader, ambientLoc, ambiante, SHADER_UNIFORM_VEC4);
 
     float fogDensity = 0.15f;       // épaisseur du brouillard
     int fogDensityLoc = GetShaderLocation(shader, "fogDensity");
     SetShaderValue(shader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
 
-    Light lumiere = CreateLight(LIGHT_POINT,{1.0f,0.9f,0.0f},camera.position,YELLOW,shader);
+    // Light lumiere = CreateLight(LIGHT_POINT,{1.0f,0.9f,0.0f},camera.position,YELLOW,shader);
 
 
     // Details joueur

@@ -9,6 +9,7 @@
 
 int Item::shieldJoueurTest = 0;
 int Item::shieldJoueurMaxTest = 150;
+bool Item::instaKillEffect = false ; 
 
 void Item::Init(Camera *camera,int  typeItem){
     Item::camera = camera ; 
@@ -49,7 +50,7 @@ void Item::Render(Vector3 posDead, int typeItem){
     }
 
         if(typeItem == 5 && recupItem == true){
-            
+            InstaKill();
         }
 
      if (recupItem != true){
@@ -59,8 +60,15 @@ void Item::Render(Vector3 posDead, int typeItem){
 }
 
 void Item::InstaKill(){
-    previousTime = GetTime();
+    time = GetTime();
+    if (previousTime = 0) previousTime = time ; 
     if(time - previousTime < 20){
-        
-    }
+        instaKillEffect = true ;
+        printf("ok\nok\nok");
+        }
+    if(time - previousTime > 20){
+        instaKillEffect = false ;
+        printf("Non\nNon\nNON");
+        previousTime = 0 ; 
+        }
 }

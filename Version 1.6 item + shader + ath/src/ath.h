@@ -21,6 +21,7 @@ class Ath
     Texture2D heart3 ;
     Texture2D shield ; 
     Texture2D player;
+    Texture2D instaKill ;
 
     void Init(int largeurEcran, int hauteurEcran, Arme *arme, int *pvJoueur, int *nbKill);
     void Render();

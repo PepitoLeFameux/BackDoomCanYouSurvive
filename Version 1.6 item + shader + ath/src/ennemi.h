@@ -11,9 +11,6 @@ class Ennemi
         int checkDrop ; 
         Vector3 position;
         Item item ; 
-        // ShieldObject shieldObject ; 
-        // AmmoItem ammoItem ;
-        //InstaKillItem instaKillItem ; 
         Vector3 posDead ; 
         float distJoueur;
         float taille;

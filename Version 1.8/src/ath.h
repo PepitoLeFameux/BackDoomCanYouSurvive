@@ -21,9 +21,12 @@ class Ath
     Texture2D shield ; 
     Texture2D player;
     Texture2D weapons[9];
+    Texture2D amogusScreen;
+    Texture2D gameOverScreen ;
 
     void Init(int largeurEcran, int hauteurEcran, Arme *arme, int *pvJoueur, int *shieldJoueur, int *nbKill);
     void Render();
+    void gameOverRender();
 
     private:
     int *pvJoueur;

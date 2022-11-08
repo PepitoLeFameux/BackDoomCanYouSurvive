@@ -18,7 +18,10 @@ void Ath::Init(int largeurEcran, int hauteurEcran, Arme *arme, int *pvJoueur, in
     heart2 = LoadTexture("../resources/items/heart2.png");
     heart3 = LoadTexture("../resources/items/heart3.png");
     heart = heart1 ; 
+    gameOverScreen = LoadTexture("../resources/ath/gameoverscreen.png");
+    amogusScreen = LoadTexture("../resources/ath/amogusScreen.png");
     player = LoadTexture("../resources/ennemis/1.png");
+
 
     for(int n=0; n<9; n++)
     {
@@ -27,6 +30,26 @@ void Ath::Init(int largeurEcran, int hauteurEcran, Arme *arme, int *pvJoueur, in
     }
 }
 
+void Ath::gameOverRender(){
+    Rectangle rec_gameOver = {0,0,gameOverScreen.width, gameOverScreen.height};
+    Rectangle rec_gameOverScreen = {0,0, largeurEcran, hauteurEcran};
+    Rectangle rec_amogus = {0,0,amogusScreen.width, amogusScreen.height};
+    Rectangle rec_amogusdest = {(largeurEcran - rec_amogusdest.width)/2,(hauteurEcran - rec_amogusdest.height)/2,650,500};
+
+    DrawTexturePro(gameOverScreen, rec_gameOver, rec_gameOverScreen, (Vector2){0,0}, 0.0f, BLACK);
+    DrawTexturePro(amogusScreen, rec_amogus, rec_amogusdest, (Vector2){0,0}, 0.0f, WHITE);
+
+    std::string strKill = "Nombre de Kills : " + std::to_string(*nbKill) ;
+    DrawText(strKill.c_str(), (largeurEcran/2)- 150 ,920,35,RED);
+
+    std::string strStart = "Appuyez sur Entrée pour relancer une partie !" ;
+    DrawText(strStart.c_str(), 500, 1000, 40, YELLOW);
+
+    if(IsKeyDown(KEY_E)){
+        DrawTexturePro(gameOverScreen, rec_gameOver, rec_gameOverScreen, (Vector2){0,0}, 0.0f, WHITE);
+    }
+
+}
 
 
 void Ath::Render(){

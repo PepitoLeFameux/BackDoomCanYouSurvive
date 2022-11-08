@@ -10,11 +10,13 @@ class Item{
     int son ;
     bool recupItem ;
     int distJoueur ;
+    int test ; 
     int time ;
     int previousTime ;
         
     static int shieldJoueurTest;
     static int shieldJoueurMaxTest;
+    static bool instaKillEffect ; 
 
     Texture2D  textureItem ;
     Vector3 cameraPos ; 

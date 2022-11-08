@@ -1,270 +1,151 @@
-#include "ennemi.h"
+/*******************************************************************************************
+*
+*   raylib [shaders] example - basic lighting
+*
+*   NOTE: This example requires raylib OpenGL 3.3 or ES2 versions for shaders support,
+*         OpenGL 1.1 does not support shaders, recompile raylib to OpenGL 3.3 version.
+*
+*   NOTE: Shaders used in this example are #version 330 (OpenGL 3.3).
+*
+*   Example originally created with raylib 3.0, last time updated with raylib 4.2
+*
+*   Example contributed by Chris Camacho (@codifies) and reviewed by Ramon Santamaria (@raysan5)
+*
+*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   BSD-like license that allows static linking with closed source software
+*
+*   Copyright (c) 2019-2022 Chris Camacho (@codifies) and Ramon Santamaria (@raysan5)
+*
+********************************************************************************************/
+#include "rcamera.h"
 #include "raylib.h"
-#include "cmath"
-#include "string"
-#include "iostream"
 
-void Ennemi::Init(Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera,
-                  int *pvJoueur, Texture2D *listeTextures)
+#include "raymath.h"
+
+
+#define RLIGHTS_IMPLEMENTATION
+#include "rlights.h"
+
+#if defined(PLATFORM_DESKTOP)
+    #define GLSL_VERSION            330
+#else   // PLATFORM_RPI, PLATFORM_ANDROID, PLATFORM_WEB
+    #define GLSL_VERSION            100
+#endif
+
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
+int main(void)
 {
-    Ennemi::mapCouleurs = mapCouleurs;
-    Ennemi::dimensionsMap = dimensionsMap;
-    Ennemi::mapPosition = mapPosition;
-    Ennemi::camera = camera;
-    Ennemi::pvJoueur = pvJoueur;
-    Ennemi::listeTextures = listeTextures;
-    vitesse = 1.3f;
-    tempsDerniereAction = GetTime();
-    poursuite = false;
-    SetRandomType();
-    SetRandomPos();
-}
+    // Initialization
+    //--------------------------------------------------------------------------------------
+    const int screenWidth = 800;
+    const int screenHeight = 450;
 
-void Ennemi::SetRandomType(void)
-{
-    const int nombreDeTypes = 4; // A CHANGER QUAND ON RAJOUTE DES ENNEMIS
-    float listeTailles[] =  {1.0f,  0.9f,   1.6f,   0.4f}; //
-    int listePvs[] =        {100,   100,    200,    34555555};      //
-    int listeDegats[] =     {5,     20,     30,     -20};
+    SetConfigFlags(FLAG_MSAA_4X_HINT);  // Enable Multi Sampling Anti Aliasing 4x (if available)
+    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - basic lighting");
 
-    typeEnnemi = GetRandomValue(0, nombreDeTypes-1);
-    taille = listeTailles[typeEnnemi];
-    defaultY = taille/4.0f;
-    distanceCollision = taille/6.0f;
-    pvMax = listePvs[typeEnnemi];
-    degats = listeDegats[typeEnnemi];
-}
+    // Define the camera to look into our 3d world
+    Camera camera = { 0 };
+    camera.position = (Vector3){ 2.0f, 4.0f, 6.0f };    // Camera position
+    camera.target = (Vector3){ 0.0f, 0.5f, 0.0f };      // Camera looking at point
+    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.fovy = 45.0f;                                // Camera field-of-view Y
+    camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
 
-bool Ennemi::VisionDirecte(Vector3 pos1, Vector3 pos2)
-{
-    bool visionDirecte = true;
-    Vector2 croisement;
-    float decal = 0.1f;
-    for(int y=0; y<dimensionsMap.height; y++)
-        for(int x=0; x<dimensionsMap.width; x++)
-            if((mapCouleurs[y*dimensionsMap.width + x].r == 255) && (
-                CheckCollisionLines((Vector2){pos1.x, pos1.z}, (Vector2){pos2.x, pos2.z}, 
-                                    (Vector2){mapPosition.x + x*1.0f - 0.5f - decal, mapPosition.z + y*1.0f - 0.5f - decal},
-                                    (Vector2){mapPosition.x + x*1.0f + 0.5f + decal, mapPosition.z + y*1.0f + 0.5f + decal},
-                                    &croisement) ||
-                CheckCollisionLines((Vector2){pos1.x, pos1.z}, (Vector2){pos2.x, pos2.z}, 
-                                    (Vector2){mapPosition.x + x*1.0f + 0.5f + decal, mapPosition.z + y*1.0f - 0.5f - decal},
-                                    (Vector2){mapPosition.x + x*1.0f - 0.5f - decal, mapPosition.z + y*1.0f + 0.5f + decal},
-                                    &croisement)
-                )
-            )
-                visionDirecte = false;
-    return visionDirecte;
-}
+    // Load plane model from a generated mesh
+    Model model = LoadModelFromMesh(GenMeshPlane(10.0f, 10.0f, 3, 3));
+    Model cube = LoadModelFromMesh(GenMeshCube(2.0f, 4.0f, 2.0f));
+    
+    // Load basic lighting shader
+    Shader shader = LoadShader(TextFormat("resources/shaders/glsl%i/lighting.vs", GLSL_VERSION),
+                               TextFormat("resources/shaders/glsl%i/lighting.fs", GLSL_VERSION));
+    // Get some required shader locations
+    shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
+    // NOTE: "matModel" location name is automatically assigned on shader loading, 
+    // no need to get the location again if using that uniform name
+    //shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
+    
+    // Ambient light level (some basic lighting)
+    int ambientLoc = GetShaderLocation(shader, "ambient");
+    SetShaderValue(shader, ambientLoc, (float[4]){ 0.1f, 0.1f, 0.1f, 1.0f }, SHADER_UNIFORM_VEC4);
 
-bool Ennemi::CheckCollisionLineCircle(Vector2 startPos, Vector2 endPos, Vector2 center,
-                                      float radius, Vector2 *pointCollision)
-{
-    float portions = (float) 8;
-    Vector2 pos1, pos2;
-    for(float alpha=0; alpha < 2*PI*(1.0f - 1.0f/portions); alpha += 2*PI/8.0f)
+    // Assign out lighting shader to model
+    model.materials[0].shader = shader;
+    cube.materials[0].shader = shader;
+
+    // Create lights
+    Light lights[MAX_LIGHTS] = { 0 };
+    lights[0] = CreateLight(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), YELLOW, shader);
+    lights[1] = CreateLight(LIGHT_POINT, (Vector3){ 2, 1, 2 }, Vector3Zero(), RED, shader);
+    lights[2] = CreateLight(LIGHT_POINT, (Vector3){ -2, 1, 2 }, Vector3Zero(), GREEN, shader);
+    lights[3] = CreateLight(LIGHT_POINT, (Vector3){ 2, 1, -2 }, Vector3Zero(), BLUE, shader);
+
+    SetCameraMode(camera, CAMERA_ORBITAL);  // Set an orbital camera mode
+
+    SetTargetFPS(60);                       // Set our game to run at 60 frames-per-second
+    //--------------------------------------------------------------------------------------
+
+    // Main game loop
+    while (!WindowShouldClose())            // Detect window close button or ESC key
     {
-        pos1.x = (float) center.x + radius*cos(alpha),             pos1.y = (float) center.y + radius*sin(alpha);
-        pos2.x = (float) center.x + radius*cos(alpha + 2*PI/8.0f), pos2.y = (float) center.y + radius*sin(alpha + 2*PI/8.0f);
-        if(CheckCollisionLines(pos1, pos2, startPos, endPos, pointCollision)) return true;
-    }
-    return false;
-}
+        // Update
+        //----------------------------------------------------------------------------------
+        UpdateCamera(&camera);
 
-void Ennemi::CorrigerDeplacementMurs()
-{   
-    int caseX = (int)(position.x - mapPosition.x + 0.5f);
-    int caseY = (int)(position.z - mapPosition.z + 0.5f);
-    Vector2 pointCollision;
-
-    if((mapCouleurs[(caseY-1)*dimensionsMap.width+caseX].r == 255
-        && CheckCollisionLineCircle((Vector2){mapPosition.x + caseX*1.0f - 0.5f, mapPosition.z + caseY*1.0f - 0.5f},
-                            (Vector2){mapPosition.x + caseX*1.0f + 0.5f, mapPosition.z + caseY*1.0f - 0.5f}, 
-                            (Vector2){position.x, position.z},
-                            distanceCollision, &pointCollision)
-        && position.z < anciennePosition.z
-        ) ||
-        (mapCouleurs[(caseY+1)*dimensionsMap.width+caseX].r == 255
-        && CheckCollisionLineCircle((Vector2){mapPosition.x + caseX*1.0f - 0.5f, mapPosition.z + caseY*1.0f + 0.5f},
-                            (Vector2){mapPosition.x + caseX*1.0f + 0.5f, mapPosition.z + caseY*1.0f + 0.5f}, 
-                            (Vector2){position.x, position.z},
-                            distanceCollision, &pointCollision)
-        && position.z > anciennePosition.z
-        )
-    )
-    {
-        position.z = anciennePosition.z;
-    } 
+        // Update the shader with the camera view vector (points towards { 0.0f, 0.0f, 0.0f })
+        float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
+        SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
         
-    if((mapCouleurs[caseY*dimensionsMap.width+caseX-1].r == 255
-        && CheckCollisionLineCircle((Vector2){mapPosition.x + caseX*1.0f - 0.5f, mapPosition.z + caseY*1.0f - 0.5f},
-                            (Vector2){mapPosition.x + caseX*1.0f - 0.5f, mapPosition.z + caseY*1.0f + 0.5f}, 
-                            (Vector2){position.x, position.z},
-                            distanceCollision, &pointCollision)
-        && position.x < anciennePosition.x
-        ) ||
-        (mapCouleurs[caseY*dimensionsMap.width+caseX+1].r == 255
-        && CheckCollisionLineCircle((Vector2){mapPosition.x + caseX*1.0f + 0.5f, mapPosition.z + caseY*1.0f - 0.5f},
-                            (Vector2){mapPosition.x + caseX*1.0f + 0.5f, mapPosition.z + caseY*1.0f + 0.5f}, 
-                            (Vector2){position.x, position.z},
-                            distanceCollision, &pointCollision)
-        && position.x > anciennePosition.x
-        )
-    )
-    {
-        position.x = anciennePosition.x;      
-    }  
-}
+        // Check key inputs to enable/disable lights
+        if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
+        if (IsKeyPressed(KEY_R)) { lights[1].enabled = !lights[1].enabled; }
+        if (IsKeyPressed(KEY_G)) { lights[2].enabled = !lights[2].enabled; }
+        if (IsKeyPressed(KEY_B)) { lights[3].enabled = !lights[3].enabled; }
+        
+        // Update light values (actually, only enable/disable them)
+        for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
+        //----------------------------------------------------------------------------------
 
-float Ennemi::DistanceHorizontale(Vector3 pos1, Vector3 pos2)
-{
-    float x1, x2, z1, z2;
-    x1 = pos1.x;
-    z1 = pos1.z;
-    x2 = pos2.x;
-    z2 = pos2.z;
-    return sqrt(pow(x1 - x2, 2) + pow(z1 - z2, 2));
-}
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
 
-Vector3 Ennemi::GetRandomPos()
-{
-    int xMax = dimensionsMap.width/2;
-    int zMax = dimensionsMap.height/2;
-    int caseX, caseZ;
-    float posX, posZ;
-    do
-    {
-        caseX = GetRandomValue(0, 2*xMax - 1);
-        caseZ = GetRandomValue(0, 2*zMax - 1);
-    }
-    while (mapCouleurs[caseZ*dimensionsMap.width + caseX].r == 255);
-    posX = (float)caseX - (float)xMax - 0.5f + (float)GetRandomValue(0, 99) / 100.0f;
-    posZ = (float)caseZ - (float)zMax - 0.5f + (float)GetRandomValue(0, 99) / 100.0f;
+            ClearBackground(RAYWHITE);
 
-    return (Vector3) {posX, defaultY, posZ};
-}
+            BeginMode3D(camera);
 
-void Ennemi::SetRandomPos()
-{
-    Vector3 cameraPos = (*camera).position;
-    do
-    {
-        position = GetRandomPos();
-    }
-    while (VisionDirecte(cameraPos, position)
-        // || DistanceHorizontale(cameraPos, position) < 3
-        );
-    anciennePosition = position;
-}
+                DrawModel(model, Vector3Zero(), 1.0f, WHITE);
+                DrawModel(cube, Vector3Zero(), 1.0f, WHITE);
 
-void Ennemi::Damaged(int dmg)
-{
-    pv -= dmg;
-    if(pv <= 0){dead = true;}
-}
-
-void Ennemi::Render()
-{
-    if(dead){;}
-    else{
-    DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/8.0f, taille/8.0f, 0.0001f, 16, DARKGRAY);
-    DrawBillboard(*camera, listeTextures[typeEnnemi], position, taille/2.0f, WHITE);
-    }
-}
-
-void Ennemi::CourtVersJoueur()
-{
-    Vector3 posJoueur = (*camera).position;
-    Vector3 directionUnitaire = (Vector3){posJoueur.x - position.x, 0.0f, posJoueur.z - position.z};
-
-    float norme = sqrt(pow(directionUnitaire.x, 2) + pow(directionUnitaire.z, 2));
-    directionUnitaire.x /= norme;
-    directionUnitaire.z /= norme;
-
-    double temps = GetTime();
-    double tempsPasse = temps - tempsDerniereAction;
-    tempsDerniereAction = temps;
-    float distanceParcourue = vitesse * tempsPasse;
-    position = (Vector3){anciennePosition.x + distanceParcourue * directionUnitaire.x, defaultY,
-                         anciennePosition.z + distanceParcourue * directionUnitaire.z};
-    CorrigerDeplacementMurs();
-    anciennePosition = position;
-}
-
-bool Ennemi::CourtVersDestination()
-{
-    Vector3 directionUnitaire = (Vector3){destination.x - position.x, 0.0f, destination.z - position.z};
-
-    float norme = sqrt(pow(directionUnitaire.x, 2) + pow(directionUnitaire.z, 2));
-    directionUnitaire.x /= norme;
-    directionUnitaire.z /= norme;
-
-    double temps = GetTime();
-    double tempsPasse = temps - tempsDerniereAction;
-    tempsDerniereAction = temps;
-    float distanceParcourue = vitesse * tempsPasse;
-    position = (Vector3){anciennePosition.x + distanceParcourue * directionUnitaire.x, defaultY,
-                         anciennePosition.z + distanceParcourue * directionUnitaire.z};
-    CorrigerDeplacementMurs();
-    anciennePosition = position;
-
-    if(sqrt(pow(position.x - destination.x, 2) + pow(position.z - destination.z, 2)) < 0.5f) return true;
-    return false;
-}
-
-void Ennemi::Action()
-{
-    if(dead){;}
-    else{
-    Vector3 cameraPos = (*camera).position;
-    if(VisionDirecte(position, (*camera).position)) poursuite = true;
-
-    if(poursuite)
-    {
-        CourtVersJoueur();
-    }
-    else
-    {
-        if(!actionEnCours)  // Nouvelle action
-        {
-            mode = GetRandomValue(1,2);
-            if(mode == 1)    // Deplacement
-            {
-                do
+                // Draw spheres to show where the lights are
+                for (int i = 0; i < MAX_LIGHTS; i++)
                 {
-                    destination = GetRandomPos();
-                } while (!VisionDirecte(position, destination));
-                
-            }
-            else             // Standby
-            {
-                dureeAttente = GetRandomValue(1,3);
-                debutAttente = GetTime();
-            }
-            actionEnCours = true;
-        }
+                    if (lights[i].enabled) DrawSphereEx(lights[i].position, 0.2f, 8, 8, lights[i].color);
+                    else DrawSphereWires(lights[i].position, 0.2f, 8, 8, ColorAlpha(lights[i].color, 0.3f));
+                }
 
-        else
-        {
-            if(mode==1)
-            {
-                if (CourtVersDestination())
-                    actionEnCours = false;
-            }
-            else
-            {
-                if(GetTime() - debutAttente > dureeAttente)
-                    actionEnCours = false;
-            }
-        }
+                DrawGrid(10, 1.0f);
+
+            EndMode3D();
+
+            DrawFPS(10, 10);
+
+            DrawText("Use keys [Y][R][G][B] to toggle lights", 10, 40, 20, DARKGRAY);
+
+        EndDrawing();
+        //----------------------------------------------------------------------------------
     }
 
-    distJoueur = sqrt(pow(position.x - cameraPos.x, 2) + pow(position.z - cameraPos.z, 2));
-    if(GetTime() - derniereAttaque > 1 && distJoueur < distanceCollision)
-    {
-        *pvJoueur -= degats;
-        derniereAttaque = GetTime();
-    }
-    tempsDerniereAction = GetTime();
-    }
+    // De-Initialization
+    //--------------------------------------------------------------------------------------
+    UnloadModel(model);     // Unload the model
+    UnloadModel(cube);      // Unload the model
+    UnloadShader(shader);   // Unload shader
+
+    CloseWindow();          // Close window and OpenGL context
+    //--------------------------------------------------------------------------------------
+
+    return 0;
 }
+

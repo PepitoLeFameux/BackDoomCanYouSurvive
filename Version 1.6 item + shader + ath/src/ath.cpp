@@ -19,6 +19,7 @@ void Ath::Init(int largeurEcran, int hauteurEcran, Arme *arme, int *pvJoueur, in
     heart3 = LoadTexture("../resources/objects/heart3.png");
     heart = heart1 ; 
     player = LoadTexture("../resources/ennemis/1.png");
+    instaKill = LoadTexture("../resources/objects/skull.png");
 }
 
 
@@ -26,6 +27,7 @@ void Ath::Init(int largeurEcran, int hauteurEcran, Arme *arme, int *pvJoueur, in
 void Ath::Render(){
 
     // Affichage des munitions + arme
+    Item item ;
     Rectangle rec_texture = {0,0,cadreAthArmes.width,cadreAthArmes.height};
     Rectangle rec_ath = {0,930,largeurEcran/4,1080 - 930};
 
@@ -40,8 +42,6 @@ void Ath::Render(){
 
     // Affichage des PV + shield
     Rectangle rec_texture_heart1 = {0,0,heart1.width,heart1.height};
-    Rectangle rec_texture_heart2 = {0,0,heart2.width,heart2.height};
-    Rectangle rec_texture_heart3 = {0,0,heart3.width,heart3.height};
     Rectangle rec_texture_heart_dest = {8,843,35,35};
     Rectangle rec_texture_shield = {0,0,shield.width, shield.height};
     Rectangle rec_texture_shield_dest = {5,880,40,40};
@@ -68,7 +68,6 @@ void Ath::Render(){
         DrawText(strPv.c_str(), 50, 845, 30, RED);
         heart = heart3 ;}
 
-    Item item ; 
     std::string strShield = std::to_string(item.shieldJoueurTest);
     DrawText(strShield.c_str(),50, 885, 30, SKYBLUE);
 
@@ -86,5 +85,10 @@ void Ath::Render(){
 
     std::string strKill = "Kills : " + std::to_string(*nbKill) ;
     DrawText(strKill.c_str(), 10,740,20,YELLOW);
+
+    // affichage bonus Item
+    Rectangle rec_texture_instaKill = {0,0,instaKill.width, instaKill.height} ; 
+    Rectangle rec_texture_instaKill_dest = {1840,2, 80, 80} ;
+    if (item.instaKillEffect == true) DrawTexturePro(instaKill, rec_texture_instaKill, rec_texture_instaKill_dest,(Vector2){0,0}, 0.0f,  WHITE);
 
 }
