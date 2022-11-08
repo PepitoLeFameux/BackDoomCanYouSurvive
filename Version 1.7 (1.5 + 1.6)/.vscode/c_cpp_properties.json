@@ -6,7 +6,8 @@
                 "${default}",
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/src",
-                "${workspaceFolder}/include"
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/src"
             ],
             "defines": [
                 "_DEBUG",

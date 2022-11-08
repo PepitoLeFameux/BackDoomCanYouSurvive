@@ -248,7 +248,7 @@ void Arme::ActionChasseur()
         if(not(reloadEnCours))
         {
             reloadStart = GetTime();
-            reloadLength = 100/60;
+            reloadLength = 80.0/60.0;
             reloadEnCours = true;
             animFrame = 0;
         }

@@ -8,9 +8,7 @@ class Ennemi
 {
     public:
         bool dead;
-        int checkDrop ; 
         Vector3 position;
-        Item item ; 
         // ShieldObject shieldObject ; 
         // AmmoItem ammoItem ;
         //InstaKillItem instaKillItem ; 
