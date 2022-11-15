@@ -109,19 +109,16 @@ void Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition)
 
     // Check sprint
     if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyDown(KEY_W) && !IsKeyDown(KEY_S))
-        {
-            *vitesse = 1.6f;
-            (*camera).fovy = 60.0f;
-           
-        }
-        else
-        {
-            *vitesse = 1.0f;
-            (*camera).fovy = 45.0f;
-        }
-    
-    //Déplacement
-    (*camera).position = Vector3Lerp(anciennePosition, (*camera).position, *vitesse);
+    {
+        *vitesse = 1.6f;
+        (*camera).fovy = 60.0f;
+        
+    }
+    else
+    {
+        *vitesse = 1.0f;
+        (*camera).fovy = 45.0f;
+    }
 }
 
 Texture2D *InitTexturesEnnemis()
@@ -297,7 +294,7 @@ int main(int argc, char const *argv[])
 
         // Caméra
         anciennePosition = camera.position;
-        UpdateCamera(&camera);
+        UpdateCamera(&camera, vitesse);
         frameCounter++;
 
         // Gestion des sons

@@ -280,7 +280,7 @@ void SetCameraMode(Camera camera, int mode)
 //       System: EnableCursor(), DisableCursor()
 //       Mouse: IsMouseButtonDown(), GetMousePosition(), GetMouseWheelMove()
 //       Keys:  IsKeyDown()
-void UpdateCamera(Camera *camera)
+void UpdateCamera(Camera *camera, float speed)
 {
     //static float swingCounter = 0.0f;    // Used for 1st person swinging movement
 
@@ -408,16 +408,16 @@ void UpdateCamera(Camera *camera)
         } break;
         case CAMERA_FIRST_PERSON:   // Camera moves as in a first-person game, controls are configurable
         {
-            camera->position.x += (sinf(CAMERA.angle.x)*direction[MOVE_BACK] -
+            camera->position.x += speed * (sinf(CAMERA.angle.x)*direction[MOVE_BACK] -
                                    sinf(CAMERA.angle.x)*direction[MOVE_FRONT] -
                                    cosf(CAMERA.angle.x)*direction[MOVE_LEFT] +
                                    cosf(CAMERA.angle.x)*direction[MOVE_RIGHT])*PLAYER_MOVEMENT_SENSITIVITY*GetFrameTime();
 
-            camera->position.y += (sinf(CAMERA.angle.y)*direction[MOVE_FRONT] -
+            camera->position.y += speed * (sinf(CAMERA.angle.y)*direction[MOVE_FRONT] -
                                    sinf(CAMERA.angle.y)*direction[MOVE_BACK] +
                                    1.0f*direction[MOVE_UP] - 1.0f*direction[MOVE_DOWN])*PLAYER_MOVEMENT_SENSITIVITY*GetFrameTime();
 
-            camera->position.z += (cosf(CAMERA.angle.x)*direction[MOVE_BACK] -
+            camera->position.z += speed * (cosf(CAMERA.angle.x)*direction[MOVE_BACK] -
                                    cosf(CAMERA.angle.x)*direction[MOVE_FRONT] +
                                    sinf(CAMERA.angle.x)*direction[MOVE_LEFT] -
                                    sinf(CAMERA.angle.x)*direction[MOVE_RIGHT])*PLAYER_MOVEMENT_SENSITIVITY*GetFrameTime();

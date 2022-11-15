@@ -251,7 +251,7 @@ void Arme::ActionChasseur()
         if(animFrame == 0) {animTir = false; clipAmmo[numeroArme] --; fire = true;}
     }
 
-    else if(reloadEnCours || (reloadPressed  && clip[numeroArme] > clipAmmo[numeroArme] && ammo[numeroArme] > 0) && !switchEnCours)
+    else if(reloadEnCours || (reloadPressed && fire && clip[numeroArme] > clipAmmo[numeroArme] && ammo[numeroArme] > 0) && !switchEnCours)
     {
         if(not(reloadEnCours))
         {

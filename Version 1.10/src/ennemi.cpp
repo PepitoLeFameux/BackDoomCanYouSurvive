@@ -351,7 +351,7 @@ void Ennemi::Action()
                 shieldSound = LoadSound("../resources/sound/itemShield1.wav");
                 PlaySound(shieldSound);
                 //UnloadSound(shieldSound);
-                *shieldJoueur = std::max(*shieldJoueur + 10, shieldJoueurMax);
+                *shieldJoueur = std::min(*shieldJoueur + 10, shieldJoueurMax);
             }
             else if(itemType == "instakill")
             {
