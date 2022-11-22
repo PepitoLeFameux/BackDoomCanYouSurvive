@@ -110,7 +110,7 @@ int Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition, int& s
     // Check sprint
     if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyDown(KEY_W) && !IsKeyDown(KEY_S) && sprintJauge > 0)
         {
-            *vitesse = 1.6f;
+            *vitesse = 1.4f;
             (*camera).fovy = 60.0f;
             sprintJauge --;
             lastSprint = GetTime();

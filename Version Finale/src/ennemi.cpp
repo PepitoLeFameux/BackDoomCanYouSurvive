@@ -11,7 +11,7 @@
 #include "algorithm"
 
 int Ennemi::nbKill = 0; 
-int Ennemi::argent = 0;
+int Ennemi::argent = 15000;
 
 bool Ennemi::operator<(Ennemi const &other) const
 {
@@ -81,7 +81,7 @@ void Ennemi::SetRandomType(void)
     float listeTailles[] =  {1.0f,  0.9f,   1.6f,   1.3f,   0.6f,   1.2f,   1.25f,  1.1f,   1.2f,   1.3f,   1.0f};
     int listePvs[] =        {100,   100,    200,    400,    70,     170,    160,    120,    250,    500,    130};
     int listeDegats[] =     {5,     20,     30,     30,     10,     20,     15,     15,     20,     50,     10};
-    float listeVitesses[] = {1.5f,  1.0f,   1.2f,   1.4f,   2.0f,   1.3f,   1.6f,   1.4f,   1.1f,   1.2f,   1.3f};
+    float listeVitesses[] = {1.7f,  1.2f,   1.4f,   1.6f,   2.2f,   1.5f,   1.8f,   1.6f,   1.3f,   1.4f,   1.5f};
     int listeArgent[] =     {50,    75,     100,    200,    50,     75,     70,     55,     60,     250,    80};
 
     
