@@ -32,6 +32,7 @@ class Ath
     Texture2D backroom ;
     Texture2D miniMap ;
     Texture2D ammoMax ;
+    Texture2D logoSprint;
     Font police ;
     Camera *camera; 
     Font police2 ;
@@ -40,6 +41,7 @@ class Ath
     void Render();
     void gameOverRender();
     void startRender();
+    void displaySprint(int sprintJauge);
 
     private:
     int *pvJoueur;

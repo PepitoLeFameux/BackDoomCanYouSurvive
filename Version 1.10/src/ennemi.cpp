@@ -31,7 +31,7 @@ bool Ennemi::operator==(const Ennemi *other) const
 void Ennemi::Init(std::vector<Ennemi> *ennemis, Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera,
                   int *pvJoueur, Texture2D *listeTextures, int *shieldJoueur, int shieldJoueurMax,
                   int *ennemisRestants, std::unordered_map<std::string, bool> *newEffects, int *ammo,
-                  int *clip, bool* unlocked)
+                  int *clip, bool* unlocked, int *getAmmo)
 {
     Ennemi::ennemis = ennemis;
     Ennemi::mapCouleurs = mapCouleurs;
@@ -44,6 +44,7 @@ void Ennemi::Init(std::vector<Ennemi> *ennemis, Color *mapCouleurs, Texture2D di
     Ennemi::ennemisRestants = ennemisRestants;
     Ennemi::newEffects = newEffects;
     Ennemi::ammo = ammo;
+    Ennemi::getAmmo = getAmmo;
     Ennemi::clip = clip;
     Ennemi::unlocked = unlocked;
     dead = true;
@@ -64,15 +65,23 @@ void Ennemi::Spawn()
 
 void Ennemi::SetRandomType(void)
 {
-    //                      1 AMOGUS 2 TREE 3 SIRENHEAD 4 HEENOK
-    float listeTailles[] =  {1.0f,  0.9f,   1.6f, 1.3f};
-    int listePvs[] =        {100,   100,    200, 500};
-    int listeDegats[] =     {5,     20,     30, 30};
-    float listeVitesses[] = {1.5f,  1.0f,   1.2f, 2.0f};
-    int listeArgent[] = {50, 75, 100, 200};
+    /*                      0 AMOGUS
+                            1 TREE 
+                            2 SIRENHEAD 
+                            3 HEENOK 
+                            4 UGANDAN KNUCKLES 
+                            5 BLUE LOBSTER
+                            6 OBUNGA
+                            0       1       2       3       4       5       6
+    */
+    float listeTailles[] =  {1.0f,  0.9f,   1.6f,   1.3f,   0.6f,   1.2f,   1.25f};
+    int listePvs[] =        {100,   100,    200,    400,    70,     170,    160};
+    int listeDegats[] =     {5,     20,     30,     30,     10,     20,     15};
+    float listeVitesses[] = {1.5f,  1.0f,   1.2f,   1.4f,   2.0f,   1.3f,   1.6f};
+    int listeArgent[] =     {50,    75,     100,    200,    50,     75,     70};
 
     const int nombreDeTypes = sizeof(listePvs)/sizeof(int);
-    typeEnnemi = GetRandomValue(0,3);
+    typeEnnemi = GetRandomValue(0,nombreDeTypes-1);
     taille = listeTailles[typeEnnemi];
     defaultY = taille/4.0f;
     distanceCollision = taille/6.0f;
@@ -111,10 +120,10 @@ bool Ennemi::CheckCollisionLineCircle(Vector2 startPos, Vector2 endPos, Vector2 
 {
     float portions = (float) 9;
     Vector2 pos1, pos2;
-    for(float alpha=0; alpha < 2*PI*(1.0f - 1.0f/portions); alpha += 2*PI/8.0f)
+    for(float alpha=0; alpha < 2*PI; alpha += 2*PI/portions)
     {
-        pos1.x = (float) center.x + radius*cos(alpha),             pos1.y = (float) center.y + radius*sin(alpha);
-        pos2.x = (float) center.x + radius*cos(alpha + 2*PI/8.0f), pos2.y = (float) center.y + radius*sin(alpha + 2*PI/8.0f);
+        pos1.x = (float) center.x + radius*cos(alpha),                 pos1.y = (float) center.y + radius*sin(alpha);
+        pos2.x = (float) center.x + radius*cos(alpha + 2*PI/portions), pos2.y = (float) center.y + radius*sin(alpha + 2*PI/portions);
         if(CheckCollisionLines(pos1, pos2, startPos, endPos, pointCollision)) return true;
     }
     return false;
@@ -271,6 +280,7 @@ void Ennemi::Damaged(int dmg)
 {
     pv -= dmg;
     dmged = true;
+    dmgTime = GetTime();
     if(pv <= 0) DeathSequence();
 }
     
@@ -285,7 +295,17 @@ void Ennemi::Render()
     else if(!dead)
     {
         DrawCylinder((Vector3){position.x, 0.0f, position.z}, taille/8.0f, taille/8.0f, 0.0001f, 16, DARKGRAY);
-        DrawBillboard(*camera, listeTextures[typeEnnemi], position, taille/2.0f, WHITE);
+        Color c;
+        double x = GetTime() - dmgTime;
+        float duree = 0.4f;
+        if(x < duree)
+        {
+            std::cout << x << std::endl;
+            c = (Color){255, 255.0*pow(x/duree, 2), 255.0*pow(x/duree, 2), 255};
+        }
+        else
+            c = WHITE;
+        DrawBillboard(*camera, listeTextures[typeEnnemi], position, taille/2.0f, c);
     }
 }
 
@@ -338,8 +358,8 @@ void Ennemi::Action()
             itemState = false;
             if(itemType.substr(0, 4) == "ammo")
             {
-                __int8 num = std::stoi(itemType.substr(4, 1));
-                ammo[num] += clip[num];
+                int num = std::stoi(itemType.substr(4, 1));
+                ammo[num] += getAmmo[num];
                 std::string strAmmoSound = ("../resources/sound/ammo") + std::to_string(num) + (".wav");
                 ammoSound = LoadSound(strAmmoSound.c_str());
                 PlaySound(ammoSound);
@@ -351,7 +371,7 @@ void Ennemi::Action()
                 shieldSound = LoadSound("../resources/sound/itemShield1.wav");
                 PlaySound(shieldSound);
                 //UnloadSound(shieldSound);
-                *shieldJoueur = std::min(*shieldJoueur + 10, shieldJoueurMax);
+                *shieldJoueur = std::min(*shieldJoueur + 25, shieldJoueurMax);
             }
             else if(itemType == "instakill")
             {
@@ -376,7 +396,7 @@ void Ennemi::Action()
     {
     Vector3 cameraPos = (*camera).position;
     distJoueur = sqrt(pow(position.x - cameraPos.x, 2) + pow(position.z - cameraPos.z, 2));
-    if(VisionDirecte(position) && distJoueur < 5 || dmged) poursuite = true;
+    if(VisionDirecte(cameraPos) && distJoueur < 5 || dmged) poursuite = true;
 
     if(poursuite)
     {

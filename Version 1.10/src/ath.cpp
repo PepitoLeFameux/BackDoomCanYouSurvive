@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "raymath.h"
 #include "ath.h"
 #include "arme.h"
 #include "string"
@@ -37,6 +38,8 @@ void Ath::Init(Camera *camera, int largeurEcran, int hauteurEcran, Arme *arme, i
     miniMap = LoadTexture("../resources/map/map3.png");
     police = LoadFont("../resources/alagard.ttf");
     police2 = LoadFont("../resources/EVILDEAD.TTF");
+
+    logoSprint = LoadTexture("../resources/ath/sprint.png");
 
 
     for(int n=0; n<9; n++)
@@ -85,6 +88,22 @@ void Ath::gameOverRender(){
     }
 
 }
+
+void Ath::displaySprint(int jauge)
+{
+    int x = 1800, y = 700, w = 50, h = 300;
+    int border = 5;
+    float propjauge = (float)jauge/240.0f;
+    //Contour
+    DrawRectangleLinesEx((Rectangle){x-border, y-border, w+2*border, h+2*border}, border, BLACK);
+    //Jauge
+    DrawRectangle(x, y+1+h*(1.0f-propjauge), w, h*propjauge, YELLOW);
+
+    Rectangle source = {0, 0, logoSprint.width, logoSprint.height};
+    Rectangle dest = {x, y-80, 50, 70};
+    DrawTexturePro(logoSprint, source, dest, Vector2Zero(), 0.0f, BLACK);
+}
+
 
 
 void Ath::Render(){

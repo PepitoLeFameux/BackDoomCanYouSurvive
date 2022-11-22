@@ -25,6 +25,8 @@ void Arme::Init(int largeurEcran, int hauteurEcran, int* frameCounter, std::vect
     Arme::clip = clip;
     Arme::clipAmmo = clipAmmo;
     Arme::unlocked = unlocked;
+    clipAmmo[1] = ammo[1];
+    clipAmmo[4] = ammo[4];
     animFrame = 0;
     previousFrame = *frameCounter;
     previousTime = GetTime();
@@ -127,12 +129,11 @@ void Arme::ActionChainsaw()
         previousFrame = *frameCounter;
         animFrame = (animFrame == 2)? 3 : 2;
         Fire(listeDegats[numeroArme], listePortees[numeroArme], listeAngles[numeroArme], maxTargets[numeroArme]);
-        ammo[numeroArme] --;
+        EnleverMunition();
+        ammo[numeroArme] = clipAmmo[numeroArme];
     }
     
-    clipAmmo[numeroArme] = ammo[numeroArme];
-
-    if(mouseDown || mousePressed && clipAmmo[numeroArme] > 0 && !switchEnCours)
+    if((mouseDown || mousePressed) && clipAmmo[numeroArme] > 0 && !switchEnCours)
         powered = true;
     else
         powered = false;
@@ -158,7 +159,7 @@ void Arme::ActionGun()
         animTir = true;
         previousFrame = *frameCounter;
         animFrame = (animFrame + 1) % totalFrames;
-        if(animFrame == 0) {animTir = false; clipAmmo[numeroArme] --; fire = true;}
+        if(animFrame == 0) {animTir = false; EnleverMunition(); fire = true;}
     }
 
     else if((reloadPressed || reloadEnCours ) && clip[numeroArme] > clipAmmo[numeroArme] && ammo[numeroArme] > 0 && !switchEnCours)
@@ -202,7 +203,7 @@ void Arme::ActionSpas12()
         animTir = true;
         previousFrame = *frameCounter;
         animFrame = (animFrame + 1) % totalFrames;
-        if(animFrame == 0) {animTir = false; clipAmmo[numeroArme] --; fire = true;}
+        if(animFrame == 0) {animTir = false; EnleverMunition(); fire = true;}
     }
 
     else if((reloadPressed || reloadEnCours ) && clip[numeroArme] > clipAmmo[numeroArme] && ammo[numeroArme] > 0 && !switchEnCours)
@@ -248,7 +249,7 @@ void Arme::ActionChasseur()
         animTir = true;
         previousFrame = *frameCounter;
         animFrame = (animFrame + 1) % totalFrames;
-        if(animFrame == 0) {animTir = false; clipAmmo[numeroArme] --; fire = true;}
+        if(animFrame == 0) {animTir = false; EnleverMunition(); fire = true;}
     }
 
     else if(reloadEnCours || (reloadPressed && fire && clip[numeroArme] > clipAmmo[numeroArme] && ammo[numeroArme] > 0) && !switchEnCours)
@@ -299,12 +300,12 @@ void Arme::ActionMinigun()
         previousFrame = *frameCounter;
         animFrame = (animFrame == 2)? 3 : 2;
         Fire(listeDegats[numeroArme], listePortees[numeroArme], listeAngles[numeroArme], maxTargets[numeroArme]);
-        ammo[numeroArme] --;
+        EnleverMunition();
+        ammo[numeroArme] = clipAmmo[numeroArme];
     }
     
-    clipAmmo[numeroArme] = ammo[numeroArme];
 
-    if(mouseDown || mousePressed && clipAmmo[numeroArme] > 0 && !switchEnCours)
+    if((mouseDown || mousePressed) && clipAmmo[numeroArme] > 0 && !switchEnCours)
         powered = true;
     else
         powered = false;
@@ -330,7 +331,7 @@ void Arme::ActionRPG()
         animTir = true;
         previousFrame = *frameCounter;
         animFrame = (animFrame + 1) % totalFrames;
-        if(animFrame == 0) {animTir = false; clipAmmo[numeroArme] --; fire = true;}
+        if(animFrame == 0) {animTir = false; EnleverMunition(); fire = true;}
     }
 
     else if((reloadPressed || reloadEnCours ) && clip[numeroArme] > clipAmmo[numeroArme] && ammo[numeroArme] > 0 && !switchEnCours)
@@ -354,24 +355,32 @@ void Arme::ActionRPG()
     }
 }
 
+void Arme::EnleverMunition()
+{
+    if(!(*effects)["infiniteammo"])
+    {   
+        clipAmmo[numeroArme] --;
+    }
+}
+
 void Arme::Fire(int damage, float range, float angle, int maxTargets)
 {
     Vector2 pointCollision;
     int targetCount = 0;
     //PlaySound(gunShotSound);
-    for(int n=0; n<listeEnnemis->size(); n++)
+    for(int n=listeEnnemis->size()-1; n>=0; n--)
     {
         Ennemi *ennemi = &((*listeEnnemis)[n]);
         float dist = sqrt(pow(camera->position.x - ennemi->position.x, 2) + pow(camera->position.z - ennemi->position.z, 2));
+        Vector3 vec3 = Vector3Add(camera->position, Vector3Scale(Vector3Normalize(Vector3Subtract(camera->target, camera->position)), range));
         if(ennemi->VisionDirecte(camera->position) &&
-            ennemi->CheckCollisionLineCircle((Vector2){camera->position.x, camera->position.z},
-                                                (Vector2){Vector3Lerp(camera->position, camera->target, range*14.0f/3.0f).x,
-                                                        Vector3Lerp(camera->position, camera->target, range*14.0f/3.0f).z},
-                                                (Vector2){ennemi->position.x, ennemi->position.z},
-                                                ennemi->taille/6.0f + dist * tanf(angle/2.0f), &pointCollision) &&
-            !(ennemi->dead))
+           ennemi->CheckCollisionLineCircle((Vector2){camera->position.x, camera->position.z},
+                                            (Vector2){vec3.x, vec3.z},
+                                            (Vector2){ennemi->position.x, ennemi->position.z},
+                                            ennemi->taille/6.0f + dist * tanf(angle/2.0f), &pointCollision) &&
+           !(ennemi->dead))
         {
-            ennemi->Damaged((*effects)["instakill"]? 9999 : damage);
+            ennemi->Damaged(((*effects)["instakill"])? 9999 : damage);
             targetCount ++;
             if(targetCount >= maxTargets)
                 break;
@@ -430,7 +439,7 @@ void Arme::Render()
                     (Vector2){(float)largeurEcran/2.0f,(float)hauteurEcran/2.0f},
                     0.0f, WHITE);
     }
-    RenderReticule(listePortees[numeroArme]);
+    RenderReticule(listePortees[numeroArme], listeAngles[numeroArme]);
 }
 
 void Arme::RenderReload(double startTime, double length)
@@ -442,20 +451,21 @@ void Arme::RenderReload(double startTime, double length)
     DrawRectangle(390*largeurEcran/1080, 570*hauteurEcran/720, 300*largeurEcran/1080*(GetTime() - startTime)/length, 50*hauteurEcran/720, WHITE);
 }
 
-void Arme::RenderReticule(float range)
+void Arme::RenderReticule(float range, float angle)
 {
     Vector2 pointCollision;
     bool ennemiDetecte = false;
     for(int n=0; n<listeEnnemis->size(); n++)
     {
         Ennemi *ennemi = &((*listeEnnemis)[n]);
+        float dist = sqrt(pow(camera->position.x - ennemi->position.x, 2) + pow(camera->position.z - ennemi->position.z, 2));
+        Vector3 vec3 = Vector3Add(camera->position, Vector3Scale(Vector3Normalize(Vector3Subtract(camera->target, camera->position)), range));
         if(ennemi->VisionDirecte(camera->position) &&
-            ennemi->CheckCollisionLineCircle((Vector2){camera->position.x, camera->position.z},
-                                                (Vector2){Vector3Lerp(camera->position, camera->target, range*14.0f/3.0f).x,
-                                                        Vector3Lerp(camera->position, camera->target, range*14.0f/3.0f).z},
-                                                (Vector2){ennemi->position.x, ennemi->position.z},
-                                                ennemi->taille/6.0f, &pointCollision) &&
-            !(ennemi->dead))
+           ennemi->CheckCollisionLineCircle((Vector2){camera->position.x, camera->position.z},
+                                            (Vector2){vec3.x, vec3.z},
+                                            (Vector2){ennemi->position.x, ennemi->position.z},
+                                            ennemi->taille/6.0f + dist * tanf(angle/2.0f), &pointCollision) &&
+           !(ennemi->dead))
         {
             ennemiDetecte = true;
             break;

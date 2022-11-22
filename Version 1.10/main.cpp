@@ -12,9 +12,9 @@
 #include "unordered_map"
 #include "achat.h"
 #include "vector"
+#include "iterator"
 
 #define PLEIN_ECRAN 1
-#define MAX_ENNEMIS 1000
 #define MAX_PROJECTILES 100
 
 /*  TODO en priorité : Tirer avec une arme (affichage sprite de l'arme, curseur, munitions, rechargement, cadence de tir, dégats)
@@ -102,22 +102,30 @@ Vector3 CorrigerDeplacementMurs(Vector3 position, Vector3 anciennePosition, floa
 }
 
 
-void Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition)
+int Deplacement(Camera *camera, float *vitesse, Vector3 anciennePosition, int& sprintJauge, double& lastSprint)
 {
     // Anti vectoring
     if (IsKeyDown(KEY_W) && (IsKeyDown(KEY_A) || IsKeyDown(KEY_D))) *vitesse /= (float) sqrt(2.0);
 
     // Check sprint
-    if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyDown(KEY_W) && !IsKeyDown(KEY_S))
+    if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyDown(KEY_W) && !IsKeyDown(KEY_S) && sprintJauge > 0)
     {
         *vitesse = 1.6f;
         (*camera).fovy = 60.0f;
-        
+        sprintJauge --;
+        lastSprint = GetTime();
+        return 2;
     }
     else
     {
         *vitesse = 1.0f;
         (*camera).fovy = 45.0f;
+        if(sprintJauge < 240 && GetTime() - lastSprint > 3)
+        {
+            sprintJauge = std::min(sprintJauge+2, 240);
+        }
+        if(IsKeyDown(KEY_A) || IsKeyDown(KEY_W) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D)) return 1;
+        return 0;
     }
 }
 
@@ -148,12 +156,12 @@ Texture2D *InitTexturesRoquette()
 void SpawnNewEnemy(std::vector<Ennemi> *enemyList, int *remaining, Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera,
                   int *pvJoueur, Texture2D *texturesEnnemis, int *shieldJoueur, int shieldJoueurMax,
                   int *ennemisRestants, std::unordered_map<std::string, bool> *newEffects, int *ammo,
-                  int *clip, bool* unlocked)
+                  int *clip, bool* unlocked, int *getAmmo)
 {
     Ennemi newEnemy;
     (*enemyList).push_back(newEnemy);
     (*enemyList).back().Init(enemyList, mapCouleurs, dimensionsMap, mapPosition, camera, pvJoueur, texturesEnnemis,
-                  shieldJoueur, shieldJoueurMax, ennemisRestants, newEffects, ammo, clip, unlocked);
+                  shieldJoueur, shieldJoueurMax, ennemisRestants, newEffects, ammo, clip, unlocked, getAmmo);
     (*enemyList).back().Spawn();
     *remaining += 1;
 }
@@ -182,6 +190,9 @@ int main(int argc, char const *argv[])
     int pvJoueurMax = 100; 
     int shieldJoueur = 0;
     int shieldJoueurMax = 150; 
+    int sprintJauge = 240;
+    double lastSprint;
+    int movement;
 
     // Jeu
     unsigned __int8 numManche = 9;
@@ -232,10 +243,14 @@ int main(int argc, char const *argv[])
     std::unordered_map<std::string, double> effectsEnd = {{"instakill", 0}, {"infiniteammo", 0}};
 
     // Init valeurs chargeurs
-    int ammo[] = {0, 150, 999, 999, 999, 999, 999, 999, 999};
-    int clip[] = {0, 0, 13, 5, 2, 100, 1, 666, 666};
-    int clipAmmo[] = {0, -1, 13, 5, 2, -1, 1, 666, 666};
-    bool unlocked[] = {true, false, true, false, false, false, false, false, false};
+    //                  0fists  1chain  2gun    3spas   4chasse 5mini   6rpg
+    int initAmmo[] = {  0,      150,    78,     40,     10,     200,    10,     false, false};
+    int ammo[9];
+    std::copy(std::begin(initAmmo), std::end(initAmmo), std::begin(ammo));
+    int getAmmo[] = {   0,      80,     39,     15,     6,      80,     3,      false, false};
+    int clip[] = {      0,      0,      13,     5,      2,      0,      1,      false, false};
+    int clipAmmo[] = {  0,      0,      13,     5,      2,      0,      1,      false, false};
+    bool unlocked[] = { true,   false,  true,   false,  false,  false,  false,  false, false};
 
     // Init ennemis
     int ennemisRestants = 0;
@@ -253,7 +268,7 @@ int main(int argc, char const *argv[])
 
     // Init Achat
     Achat achat;
-    achat.Init(&camera, &arme, unlocked, &(ennemis[0].argent));
+    achat.Init(&camera, &arme, unlocked, &(ennemis[0].argent), ammo, getAmmo);
 
 
     
@@ -271,182 +286,185 @@ int main(int argc, char const *argv[])
         // Debut de partie
 
         if(start == false){
-            BeginDrawing();
-            ath.startRender();
-            if (playMusic == 0){
-            PlaySound(musicMenu);
-            playMusic = 1;}
-            EndDrawing();
-            //if(IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D))camera.position = anciennePosition ;
-            if(IsKeyPressed(KEY_ENTER)){
-                start = true ; 
-                StopSound(musicMenu);
-        }}
-        // Action arme
+                BeginDrawing();
+                ath.startRender();
+                if (playMusic == 0){
+                PlaySound(musicMenu);
+                playMusic = 1;}
+                EndDrawing();
+                //if(IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D))camera.position = anciennePosition ;
+                if(IsKeyPressed(KEY_ENTER)){
+                    start = true ; 
+                    StopSound(musicMenu);
+            }
+        }
         if (start == true){
-        arme.Action();
 
-        // Action projectiles
-        for(int n=0; n<MAX_PROJECTILES; n++) projectiles[n].Action();
+            // Action arme
+            arme.Action();
 
-        // Action Achat
-        achat.Acheter();
+            // Action projectiles
+            for(int n=0; n<MAX_PROJECTILES; n++) projectiles[n].Action();
 
-        // Caméra
-        anciennePosition = camera.position;
-        UpdateCamera(&camera, vitesse);
-        frameCounter++;
+            // Action Achat
+            achat.Acheter();
 
-        // Gestion des sons
+            // Caméra
+            anciennePosition = camera.position;
+            UpdateCamera(&camera, vitesse);
+            frameCounter++;
 
-        if(gameOver == true){
-            StopSound(running);
-            StopSound(footstep);
-            StopSound(round);
-        }
-        if(gameOver == false){
-        if(((IsKeyDown(KEY_W)) || (IsKeyDown(KEY_S)) || (IsKeyDown(KEY_A)) || (IsKeyDown(KEY_D))) && (IsKeyDown(KEY_LEFT_SHIFT)) == false ){
-            if(IsSoundPlaying(running)) StopSound(running) ; 
-            if(IsSoundPlaying(footstep) == false){
-            PlaySound(footstep);
+            // Gestion des sons
+
+            if(gameOver == true){
+                StopSound(running);
+                StopSound(footstep);
+                StopSound(round);
             }
-        }
-
-        if((IsKeyDown(KEY_W) == true) && (IsKeyDown(KEY_LEFT_SHIFT) == true)){
-            if(IsSoundPlaying(footstep)) StopSound(footstep);
-            if(IsSoundPlaying(running) == false) PlaySound(running); 
-        }
-
-        if(((IsKeyUp(KEY_W)) && (IsKeyUp(KEY_S)) && (IsKeyUp(KEY_A)) && (IsKeyUp(KEY_D)))){
-            StopSound(running);
-            StopSound(footstep);
-        }
-        }
-
-        // Déplacement caméra
-        Deplacement(&camera, &vitesse, anciennePosition);
-        camera.position = CorrigerDeplacementMurs(camera.position, anciennePosition, distanceCollision,
-                                                  mapPosition, mapCouleurs, dimensionsMap);
-
-        // Action effets
-        for(auto const &[effet, etat] : newEffects)
-        {
-            if(etat)
-            {
-                newEffects[effet] = false;
-                effects[effet] = true;
-                effectsEnd[effet] = GetTime() + 10 - numManche/1.5;
+            if(gameOver == false){
+            if(movement == 1){
+                if(IsSoundPlaying(running)) StopSound(running) ; 
+                if(IsSoundPlaying(footstep) == false) PlaySound(footstep);
             }
-            if(effectsEnd[effet] < GetTime())
-            {
-                effects[effet] = false;
-            }
-        }
 
-        // Gestion manches
-        secondesParEnnemi = std::max((3.0 - 0.4*numManche), 0.3);
-        if(mancheEnCours)
-        {
-            if(GetTime() - lastSpawn > secondesParEnnemi)
+            else if(movement == 2){
+                if(IsSoundPlaying(footstep)) StopSound(footstep);
+                if(IsSoundPlaying(running) == false) PlaySound(running); 
+            }
+
+            else if(movement == 0){
+                StopSound(running);
+                StopSound(footstep);
+            }
+            }
+
+            // Déplacement caméra
+            movement = Deplacement(&camera, &vitesse, anciennePosition, sprintJauge, lastSprint);
+            camera.position = CorrigerDeplacementMurs(camera.position, anciennePosition, distanceCollision,
+                                                    mapPosition, mapCouleurs, dimensionsMap);
+
+            // Action effets
+            if(IsKeyPressed(KEY_Z)) ennemis.pop_back();
+            for(auto const &[effet, etat] : newEffects)
             {
-                SpawnNewEnemy(&ennemis, &ennemisRestants, mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis,
-                              &shieldJoueur, shieldJoueurMax, &ennemisRestants, &newEffects, ammo, clip, unlocked);
-                spawned++;
-                lastSpawn = GetTime();
-                if(spawned == int(ennemisParManche * std::pow(1.3, numManche)))
+                if(etat)
                 {
-                    mancheEnCours = false;
-                    spawned = 0 ;
+                    newEffects[effet] = false;
+                    effects[effet] = true;
+                    effectsEnd[effet] = GetTime() + std::max(2.0, 10.0 - (double)numManche/1.5);
+                }
+                else if(effectsEnd[effet] < GetTime())
+                {
+                    effects[effet] = false;
                 }
             }
-        }
-        else if(ennemisRestants == 0)
-        {
-            if(!mancheFinie)
+
+            // Gestion manches
+            secondesParEnnemi = std::max((3.0 - 0.4*numManche), 0.3);
+            if(mancheEnCours)
             {
-                mancheFinie = true;
-                finManche = 10.0 + GetTime();
+                if(GetTime() - lastSpawn > secondesParEnnemi)
+                {
+                    SpawnNewEnemy(&ennemis, &ennemisRestants, mapCouleurs, dimensionsMap, mapPosition, &camera, &pvJoueur, texturesEnnemis,
+                                &shieldJoueur, shieldJoueurMax, &ennemisRestants, &newEffects, ammo, clip, unlocked, getAmmo);
+                    spawned++;
+                    lastSpawn = GetTime();
+                    if(spawned == int(ennemisParManche * std::pow(1.3, numManche)))
+                    {
+                        mancheEnCours = false;
+                        spawned = 0 ;
+                    }
+                }
             }
-            else if(GetTime() >= finManche)
+            else if(ennemisRestants == 0)
             {
-                mancheEnCours = true; 
-                mancheFinie = false;
-                numManche ++ ;
-                if(numManche%5 == 0) PlaySound(round) ; 
+                if(!mancheFinie)
+                {
+                    mancheFinie = true;
+                    finManche = 10.0 + GetTime();
+                }
+                else if(GetTime() >= finManche)
+                {
+                    mancheEnCours = true; 
+                    mancheFinie = false;
+                    numManche ++ ;
+                    if(numManche%5 == 0) PlaySound(round) ; 
+                }
             }
-        }
 
-        // Action ennemis
-        for(int n=0; n<ennemis.size(); n++) ennemis[n].Action();
-        
-        // Tri ennemis par proximité avec le joueur dans le sens croissant
-        std::sort(ennemis.begin(), ennemis.end(), std::greater<Ennemi>());
-
-         // Game Over
-        //  std::string strCamera = std::to_string(camera.position.x) + " " + std::to_string(camera.position.y) + " " + std::to_string(camera.position.z) + "\n";
-        //  printf(strCamera.c_str());
-        if(pvJoueur > 0) gameOver = false ; 
-        if(pvJoueur <= 0){
-            gameOver = true ;
-            if(playSound == 0){
-            Sound gameOverSound = LoadSound("../resources/sound/gameOver.wav");
-            PlaySound(gameOverSound);
-            PlaySound(gameOverMusic);
-            playSound = 1 ; 
-            }
-            if(IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D))camera.position = anciennePosition ;
-            if (IsKeyPressed(KEY_ENTER)) reset = true ;
-        }
-
-        if (reset == true){
-            pvJoueur = 100 ;
-            shieldJoueur = 0 ;
-            ennemis[0].nbKill = 0;
-            camera.position = {0.0f, 0.4f, 2.0f};
-            reset = false;
-            //playSound = 0 ;
-            numManche = 0;
-            ennemis[0].argent = 0 ;
-            for (int i = 0 ; i<9 ; i++){
-                if(i != 0 || i!= 2) unlocked[i] = false ; 
-            }
-            unlocked[0] = true ;
-            unlocked[2] = true ; 
-            arme.numeroArme = 0 ;
-        }
-
-
-        BeginDrawing();
-
-            ClearBackground(MAGENTA);
+            // Action ennemis
+            for(int n=0; n<ennemis.size(); n++) ennemis[n].Action();
             
-            BeginMode3D(camera);
-                // Affichage map
-                DrawModel(modeleMap, mapPosition, 1.0f, WHITE);
+            // Tri ennemis par proximité avec le joueur dans le sens croissant
+            std::sort(ennemis.begin(), ennemis.end(), std::greater<Ennemi>());
 
-                achat.Render() ; 
-
-                // Affichage ennemis du plus loin au plus proche
-                for(int n=0; n<ennemis.size(); n++){ 
-                    ennemis[n].Render();
-                }
-
-                // Affichage projectiles
-                for(int n=0; n<MAX_PROJECTILES; n++) projectiles[n].Render();
-            EndMode3D();
-
-            arme.Render();
-            achat.RenderMessage();
-
-            if(reset == false && pvJoueur > 0) ath.Render(); 
+            // Game Over
+            //  std::string strCamera = std::to_string(camera.position.x) + " " + std::to_string(camera.position.y) + " " + std::to_string(camera.position.z) + "\n";
+            //  printf(strCamera.c_str());
+            if(pvJoueur > 0) gameOver = false ; 
             if(pvJoueur <= 0){
-                ath.gameOverRender();
+                gameOver = true ;
+                if(playSound == 0){
+                Sound gameOverSound = LoadSound("../resources/sound/gameOver.wav");
+                PlaySound(gameOverSound);
+                PlaySound(gameOverMusic);
+                playSound = 1 ; 
+                }
+                if(IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D))camera.position = anciennePosition ;
+                if (IsKeyPressed(KEY_ENTER)) reset = true ;
             }
 
-        EndDrawing();
+            if (reset == true){
+                pvJoueur = 100 ;
+                shieldJoueur = 0 ;
+                ennemis[0].nbKill = 0;
+                camera.position = {0.0f, 0.4f, 0.0f};
+                reset = false;
+                //playSound = 0 ;
+                numManche = 0;
+                ennemis[0].argent = 0 ;
+                for (int i = 0 ; i<9 ; i++){
+                    if(i != 0 || i!= 2) unlocked[i] = false ; 
+                }
+                unlocked[0] = true ;
+                unlocked[2] = true ; 
+                arme.numeroArme = 0 ;
+                std::copy(std::begin(initAmmo), std::end(initAmmo), std::begin(ammo));
+                std::copy(std::begin(clipAmmo), std::end(clipAmmo), std::begin(clip));
+                ennemis.clear();
+            }
 
 
-        }
+            BeginDrawing();
+
+                ClearBackground(MAGENTA);
+                
+                BeginMode3D(camera);
+                    // Affichage map
+                    DrawModel(modeleMap, mapPosition, 1.0f, WHITE);
+
+                    achat.Render() ; 
+
+                    // Affichage ennemis du plus loin au plus proche
+                    for(int n=0; n<ennemis.size(); n++){ 
+                        ennemis[n].Render();
+                    }
+
+                    // Affichage projectiles
+                    for(int n=0; n<MAX_PROJECTILES; n++) projectiles[n].Render();
+                EndMode3D();
+
+                arme.Render();
+                ath.displaySprint(sprintJauge);
+                achat.RenderMessage();
+
+                if(reset == false && pvJoueur > 0) ath.Render(); 
+                if(pvJoueur <= 0){
+                    ath.gameOverRender();
+                }
+
+            EndDrawing();
+            }
     }
 
     UnloadImageColors(mapCouleurs);

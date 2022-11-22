@@ -5,16 +5,18 @@
 #include "iostream"
 
 
-void Achat::Init(Camera *camera, Arme *arme, bool *unlocked, int *argent){
+void Achat::Init(Camera *camera, Arme *arme, bool *unlocked, int *argent, int *ammo, int *getAmmo){
 
     Achat::argent = argent ;
     Achat::camera = camera ; 
     Achat::unlocked = unlocked ; 
     Achat::arme = arme ; 
+    Achat::ammo = ammo;
+    Achat::getAmmo = getAmmo;
     for (int num = 0 ; num <= 5 ; num++){
         std::string strTexture = "../resources/ath/weapon" + std::to_string(num + 1) + ".png" ;
         weapon[num] = LoadTexture(strTexture.c_str());
-        rec_src[num] = {0,0,(weapon[num]).width, (weapon[num]).height};
+        rec_src[num] = {0,0,(float)(weapon[num]).width, (float)(weapon[num]).height};
     }
 
     cashRegister = LoadSound("../resources/sound/cashRegister.wav");
@@ -51,13 +53,18 @@ void Achat::Acheter(){
         if(distJoueurListe[n] <= 0.2f) achatPossibleListe[n] = true ; 
         else achatPossibleListe[n] = false ; 
 
-        if(achatPossibleListe[n] == true){
-            if(IsKeyPressed(KEY_B) && *argent >= prixListe[n] && unlocked[n+1] == false){
-                *argent -= prixListe[n] ; 
-                PlaySound(cashRegister);
+        if(achatPossibleListe[n] == true && IsKeyPressed(KEY_B) && *argent >= prixListe[n]){
+            *argent -= prixListe[n] ; 
+            PlaySound(cashRegister);
+            if(unlocked[n+1] == false){
                 unlocked[n+1] = true ;
                 unlocked[arme->numeroArme] = false ;
                 arme->numeroArme = n+1 ;  
+                ammo[n+1] = getAmmo[n+1];
+            }
+            else
+            {
+                ammo[n+1] += ammo[n+1]*3;
             }
         }
     }

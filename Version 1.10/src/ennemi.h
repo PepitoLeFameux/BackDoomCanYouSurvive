@@ -27,14 +27,16 @@ class Ennemi
         bool itemState;
         std::string itemType;
         int *ammo;
+        int *getAmmo;
         int *clip;
         bool *unlocked;
         bool dmged;
+        double dmgTime;
 
         void Init(std::vector<Ennemi> *ennemis, Color *mapCouleurs, Texture2D dimensionsMap, Vector3 mapPosition, Camera *camera,
                   int *pvJoueur, Texture2D *listeTextures, int *shieldJoueur, int shieldJoueurMax,
                   int *ennemisRestants, std::unordered_map<std::string, bool> *newEffects, int *ammo,
-                  int *clip, bool* unlocked);
+                  int *clip, bool* unlocked, int *getAmmo);
         void Spawn();
 
         void Action();
