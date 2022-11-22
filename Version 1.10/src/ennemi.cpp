@@ -68,20 +68,24 @@ void Ennemi::SetRandomType(void)
     /*                      0 AMOGUS
                             1 TREE 
                             2 SIRENHEAD 
-                            3 HEENOK 
+                            3 CAGASTE
                             4 UGANDAN KNUCKLES 
                             5 BLUE LOBSTER
                             6 OBUNGA
-                            0       1       2       3       4       5       6
+                            7 PURPLE GUY
+                            8 BIG CHUNGUS
+                            9 TRUC DOOM
+                            10 DOG
+                            0       1       2       3       4       5       6       7       8       9       10
     */
-    float listeTailles[] =  {1.0f,  0.9f,   1.6f,   1.3f,   0.6f,   1.2f,   1.25f};
-    int listePvs[] =        {100,   100,    200,    400,    70,     170,    160};
-    int listeDegats[] =     {5,     20,     30,     30,     10,     20,     15};
-    float listeVitesses[] = {1.5f,  1.0f,   1.2f,   1.4f,   2.0f,   1.3f,   1.6f};
-    int listeArgent[] =     {50,    75,     100,    200,    50,     75,     70};
+    float listeTailles[] =  {1.0f,  0.9f,   1.6f,   1.3f,   0.6f,   1.2f,   1.25f,  1.1f,   1.2f,   1.3f,   1.0f};
+    int listePvs[] =        {100,   100,    200,    400,    70,     170,    160,    120,    250,    500,    130};
+    int listeDegats[] =     {5,     20,     30,     30,     10,     20,     15,     15,     20,     50,     10};
+    float listeVitesses[] = {1.5f,  1.0f,   1.2f,   1.4f,   2.0f,   1.3f,   1.6f,   1.4f,   1.1f,   1.2f,   1.3f};
+    int listeArgent[] =     {50,    75,     100,    200,    50,     75,     70,     55,     60,     250,    80};
 
     const int nombreDeTypes = sizeof(listePvs)/sizeof(int);
-    typeEnnemi = GetRandomValue(0,nombreDeTypes-1);
+    typeEnnemi = GetRandomValue(0, nombreDeTypes-1);
     taille = listeTailles[typeEnnemi];
     defaultY = taille/4.0f;
     distanceCollision = taille/6.0f;

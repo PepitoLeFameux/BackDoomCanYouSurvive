@@ -26,11 +26,11 @@ class Arme
 
     //poing Chainsaw Gun Shotgun Chasseur Minigun Rocket .......
 
-    int listeDegats[9] = {30, 20, 30, 60, 100, 30, 300};
+    int listeDegats[9] = {25, 15, 30, 60, 100, 30, 300};
     float listePortees[9] = {1.0f, 1.3f, 5.0f, 1.5f, 2.0f, 8.0f, 100.0f};
     float listeAngles[9] = {PI/6.0f, PI/6.0f, 0.0f, PI/6.0f, PI/6.0f, 0.0f, -1.0f};
-    int maxTargets[9] = {1, 3, 1, 3, 6, 1, -1};
-    double reloadTime[9] = {0, 0, 1.5, 2.5, -1, 5, 4};
+    int maxTargets[9] = {1, 2, 1, 3, 6, 1, -1};
+    double reloadTime[9] = {0, 0, 1.5, 2.5, -1, -1, 2.7};
     int *clipAmmo;
     int *clip;
     int *ammo;
